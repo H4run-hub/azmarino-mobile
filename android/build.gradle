@@ -19,3 +19,12 @@ buildscript {
 }
 
 apply plugin: "com.facebook.react.rootproject"
+
+// AsyncStorage 3.x ships its Android shared library in a local Maven repo (must be resolvable by all projects)
+allprojects {
+    repositories {
+        maven {
+            url "${rootDir}/../node_modules/@react-native-async-storage/async-storage/android/local_repo"
+        }
+    }
+}

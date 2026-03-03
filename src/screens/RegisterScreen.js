@@ -51,10 +51,11 @@ const RegisterScreen = ({navigation, onLogin}) => {
     setApiError('');
     try {
       const data = await registerUser(name.trim(), email.trim(), phone.trim(), password);
-      if (data.success) {
+      // API returns { token, user } on success; success flag may or may not be present
+      if (data?.user) {
         if (onLogin) onLogin(data.user);
       } else {
-        setApiError(data.message || 'Registration failed');
+        setApiError(data?.message || 'Registration failed');
       }
     } catch (err) {
       const msg = err.response?.data?.message || 'ምስ ሰርቨር ምትሕሓዝ ኣይተኻእለን';
