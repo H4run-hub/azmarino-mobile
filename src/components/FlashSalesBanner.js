@@ -1,62 +1,41 @@
-import React, {useState, useEffect} from 'react';
-import {View, Text, StyleSheet, ScrollView, Image, TouchableOpacity} from 'react-native';
+import React, {useState, useEffect, useMemo} from 'react';
+import {View, Text, StyleSheet, ScrollView, TouchableOpacity} from 'react-native';
+import FastImage from 'react-native-fast-image';
+import {useLanguage} from '../context/LanguageContext';
+import {s, vs, fs} from '../utils/scale';
+import {getFlashSaleEndTime, getTimeRemaining} from '../utils/flashSale';
 
-const FlashSalesBanner = ({navigation, theme}) => {
-  const [timeLeft, setTimeLeft] = useState({
-    hours: 4,
-    minutes: 23,
-    seconds: 45,
-  });
+const FlashSalesBanner = ({navigation, theme, products, allProducts}) => {
+  const {t, language} = useLanguage();
+  const [endTime] = useState(() => getFlashSaleEndTime());
+  const [timeLeft, setTimeLeft] = useState(() => getTimeRemaining(endTime));
 
   useEffect(() => {
     const timer = setInterval(() => {
-      setTimeLeft(prev => {
-        let {hours, minutes, seconds} = prev;
-        
-        if (seconds > 0) {
-          seconds--;
-        } else if (minutes > 0) {
-          minutes--;
-          seconds = 59;
-        } else if (hours > 0) {
-          hours--;
-          minutes = 59;
-          seconds = 59;
-        }
-        
-        return {hours, minutes, seconds};
-      });
+      const remaining = getTimeRemaining(endTime);
+      setTimeLeft(remaining);
+      if (remaining.expired) clearInterval(timer);
     }, 1000);
-
     return () => clearInterval(timer);
-  }, []);
+  }, [endTime]);
 
-  const flashProducts = [
-    {
-      id: 'flash1',
-      name: 'Wireless Earbuds',
-      price: '€19.99',
-      originalPrice: '€79.99',
-      image: 'https://picsum.photos/seed/earbuds/300/300',
-      discount: 75,
-    },
-    {
-      id: 'flash2',
-      name: 'Smart Watch',
-      price: '€49.99',
-      originalPrice: '€149.99',
-      image: 'https://picsum.photos/seed/smartwatch/300/300',
-      discount: 67,
-    },
-    {
-      id: 'flash3',
-      name: 'Phone Case',
-      price: '€5.99',
-      originalPrice: '€19.99',
-      image: 'https://picsum.photos/seed/phonecase/300/300',
-      discount: 70,
-    },
-  ];
+  // Use real discounted products from the database
+  const flashProducts = useMemo(() => {
+    // products prop = already filtered for discount > 0
+    const source = (products && products.length > 0) ? products : (allProducts || []);
+    // Sort by highest discount, take top 10
+    const sorted = [...source]
+      .filter(p => (p.discount || 0) > 0)
+      .sort((a, b) => (b.discount || 0) - (a.discount || 0))
+      .slice(0, 10);
+    // If no discounted products, pick random products as "flash deals"
+    if (sorted.length === 0 && allProducts && allProducts.length > 0) {
+      return allProducts.slice(0, 6);
+    }
+    return sorted;
+  }, [products, allProducts]);
+
+  if (flashProducts.length === 0 || timeLeft.expired) return null;
 
   return (
     <View style={[styles.container, {backgroundColor: theme.cardBg}]}>
@@ -64,7 +43,7 @@ const FlashSalesBanner = ({navigation, theme}) => {
       <View style={styles.header}>
         <View style={styles.titleRow}>
           <Text style={styles.icon}>⚡</Text>
-          <Text style={styles.title}>ናይ ሰዓት ሽያጥ</Text>
+          <Text style={styles.title}>{t('flashSaleTitle').replace('⚡ ', '')}</Text>
         </View>
         <View style={styles.timerContainer}>
           <View style={styles.timeBox}>
@@ -86,26 +65,40 @@ const FlashSalesBanner = ({navigation, theme}) => {
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.productsContainer}>
-        {flashProducts.map(product => (
+        {flashProducts.map((product, idx) => (
           <TouchableOpacity
-            key={product.id}
-            style={styles.productCard}
+            key={product.id || `flash-${idx}`}
+            style={[styles.productCard, {backgroundColor: theme.cardBg}]}
             onPress={() => navigation.navigate('ProductDetail', {product})}>
-            <View style={styles.discountBadge}>
-              <Text style={styles.discountText}>-{product.discount}%</Text>
-            </View>
-            <Image source={{uri: product.image}} style={styles.productImage} />
+            {(product.discount || 0) > 0 && (
+              <View style={styles.discountBadge}>
+                <Text style={styles.discountText}>-{product.discount}%</Text>
+              </View>
+            )}
+            <FastImage
+              source={{uri: product.image, priority: FastImage.priority.normal}}
+              style={styles.productImage}
+              resizeMode={FastImage.resizeMode.cover}
+            />
             <View style={styles.productInfo}>
-              <Text style={[styles.productName, {color: theme.text}]} numberOfLines={1}>
-                {product.name}
+              <Text style={[styles.productName, {color: theme.text}]} numberOfLines={2}>
+                {language === 'ti' ? (product.tigrinya || product.nameTi || product.name) : product.name}
               </Text>
               <View style={styles.priceRow}>
                 <Text style={styles.price}>{product.price}</Text>
-                <Text style={styles.originalPrice}>{product.originalPrice}</Text>
+                {product.originalPrice && (
+                  <Text style={styles.originalPrice}>{product.originalPrice}</Text>
+                )}
               </View>
             </View>
           </TouchableOpacity>
         ))}
+        {/* See All button */}
+        <TouchableOpacity
+          style={styles.seeAllBtn}
+          onPress={() => navigation.navigate('FlashSale', {products: flashProducts, endTime: endTime.toISOString()})}>
+          <Text style={styles.seeAllText}>›</Text>
+        </TouchableOpacity>
       </ScrollView>
     </View>
   );
@@ -164,7 +157,6 @@ const styles = StyleSheet.create({
   },
   productCard: {
     width: 140,
-    backgroundColor: '#ffffff',
     borderRadius: 12,
     marginRight: 12,
     overflow: 'hidden',
@@ -192,7 +184,6 @@ const styles = StyleSheet.create({
   productImage: {
     width: '100%',
     height: 140,
-    resizeMode: 'cover',
   },
   productInfo: {
     padding: 10,
@@ -201,6 +192,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
     marginBottom: 6,
+    lineHeight: 18,
   },
   priceRow: {
     flexDirection: 'row',
@@ -216,6 +208,18 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: '#999999',
     textDecorationLine: 'line-through',
+  },
+  seeAllBtn: {
+    width: 50,
+    height: 140,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 4,
+  },
+  seeAllText: {
+    fontSize: 32,
+    color: '#FF0000',
+    fontWeight: 'bold',
   },
 });
 

@@ -2,13 +2,15 @@ import React, {useState} from 'react';
 import {
   View, Text, StyleSheet, TextInput, TouchableOpacity,
   StatusBar, KeyboardAvoidingView, Platform, ScrollView, useWindowDimensions,
-  ActivityIndicator, Image,
+  ActivityIndicator, Alert,
 } from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {useTheme} from '../context/ThemeContext';
 import {useLanguage} from '../context/LanguageContext';
 import {BackIcon} from '../components/Icons';
+import Icon from 'react-native-vector-icons/Ionicons';
 import {registerUser} from '../services/api';
+import {s, vs, fs} from '../utils/scale';
 
 const RegisterScreen = ({navigation, onLogin}) => {
   const {theme, isDark} = useTheme();
@@ -51,9 +53,9 @@ const RegisterScreen = ({navigation, onLogin}) => {
     setApiError('');
     try {
       const data = await registerUser(name.trim(), email.trim(), phone.trim(), password);
-      // API returns { token, user } on success; success flag may or may not be present
+      // API returns { token, user } on success — navigate to email verification
       if (data?.user) {
-        if (onLogin) onLogin(data.user);
+        navigation.navigate('EmailVerification', {user: data.user});
       } else {
         setApiError(data?.message || 'Registration failed');
       }
@@ -99,11 +101,6 @@ const RegisterScreen = ({navigation, onLogin}) => {
           <View style={[styles.formCard, isTablet && styles.formCardTablet, {backgroundColor: isTablet ? theme.cardBg : 'transparent'}]}>
 
             <View style={styles.logoSection}>
-              <Image
-                source={require('../assets/logo.png')}
-                style={styles.logo}
-                resizeMode="contain"
-              />
               <Text style={styles.appName}>{t('appName')}</Text>
               <Text style={[styles.welcomeText, {color: theme.subText}]}>{t('createAccount')}</Text>
             </View>
@@ -136,11 +133,21 @@ const RegisterScreen = ({navigation, onLogin}) => {
                 <View style={[styles.dividerLine, {backgroundColor: theme.border}]} />
               </View>
 
-              <TouchableOpacity style={[styles.socialButton, {backgroundColor: theme.cardBg, borderColor: theme.border}]}>
-                <Text style={[styles.socialButtonText, {color: theme.text}]}>{t('registerGoogle')}</Text>
+              <TouchableOpacity
+                style={[styles.socialButton, {backgroundColor: theme.cardBg, borderColor: theme.border}]}
+                onPress={() => Alert.alert(t('comingSoonTitle'), t('comingSoonSub'))}>
+                <View style={styles.socialButtonInner}>
+                  <Icon name="logo-google" size={20} color="#DB4437" />
+                  <Text style={[styles.socialButtonText, {color: theme.text}]}>{t('registerGoogle')}</Text>
+                </View>
               </TouchableOpacity>
-              <TouchableOpacity style={[styles.socialButton, {backgroundColor: theme.cardBg, borderColor: theme.border}]}>
-                <Text style={[styles.socialButtonText, {color: theme.text}]}>{t('registerFacebook')}</Text>
+              <TouchableOpacity
+                style={[styles.socialButton, {backgroundColor: '#1877F2', borderColor: '#1877F2'}]}
+                onPress={() => Alert.alert(t('comingSoonTitle'), t('comingSoonSub'))}>
+                <View style={styles.socialButtonInner}>
+                  <Icon name="logo-facebook" size={20} color="#fff" />
+                  <Text style={[styles.socialButtonText, {color: '#fff'}]}>{t('registerFacebook')}</Text>
+                </View>
               </TouchableOpacity>
             </View>
 
@@ -171,7 +178,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingHorizontal: 18, paddingVertical: 16, borderBottomWidth: 1,
   },
-  headerTitle: {fontSize: 20, fontWeight: 'bold'},
+  headerTitle: {fontSize: fs(20), fontWeight: 'bold'},
   scrollContent: {flexGrow: 1, padding: 20},
   scrollContentTablet: {alignItems: 'center', paddingVertical: 40},
   formCard: {width: '100%'},
@@ -180,30 +187,31 @@ const styles = StyleSheet.create({
     shadowColor: '#000', shadowOffset: {width: 0, height: 4},
     shadowOpacity: 0.1, shadowRadius: 12, elevation: 6,
   },
-  logoSection: {alignItems: 'center', marginTop: 16, marginBottom: 28},
+  logoSection: {alignItems: 'center', marginTop: 16, marginBottom: 28, width: '100%', paddingHorizontal: 20},
   logo: {width: 80, height: 80, marginBottom: 10},
-  appName: {fontSize: 28, fontWeight: 'bold', color: '#FF0000', marginBottom: 8},
-  welcomeText: {fontSize: 15},
+  appName: {fontSize: fs(28), fontWeight: 'bold', color: '#FF0000', marginBottom: 8},
+  welcomeText: {fontSize: fs(15), textAlign: 'center'},
   form: {marginBottom: 16},
-  input: {borderRadius: 12, padding: 16, fontSize: 16, marginBottom: 4, borderWidth: 1},
-  fieldError: {color: '#FF0000', fontSize: 12, marginBottom: 10, marginLeft: 4},
+  input: {borderRadius: 12, padding: 16, fontSize: fs(16), marginBottom: 4, borderWidth: 1},
+  fieldError: {color: '#FF0000', fontSize: fs(12), marginBottom: 10, marginLeft: 4},
   registerButton: {
     backgroundColor: '#FF0000', padding: 18, borderRadius: 12,
     alignItems: 'center', marginTop: 8, marginBottom: 20,
   },
-  registerButtonText: {color: '#fff', fontSize: 18, fontWeight: 'bold'},
+  registerButtonText: {color: '#fff', fontSize: fs(18), fontWeight: 'bold'},
   divider: {flexDirection: 'row', alignItems: 'center', marginVertical: 16},
   dividerLine: {flex: 1, height: 1},
-  dividerText: {marginHorizontal: 15, fontSize: 14},
+  dividerText: {marginHorizontal: 15, fontSize: fs(14)},
   socialButton: {padding: 16, borderRadius: 12, alignItems: 'center', marginBottom: 12, borderWidth: 1},
-  socialButtonText: {fontSize: 16, fontWeight: '600'},
+  socialButtonInner: {flexDirection: 'row', alignItems: 'center', gap: 10},
+  socialButtonText: {fontSize: fs(16), fontWeight: '600'},
   aboutButton: {marginTop: 12, marginBottom: 8, alignItems: 'center'},
-  aboutButtonText: {fontSize: 14, textDecorationLine: 'underline'},
+  aboutButtonText: {fontSize: fs(14), textDecorationLine: 'underline'},
   footer: {flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginTop: 16},
-  footerText: {fontSize: 15},
-  loginLink: {fontSize: 15, color: '#FF0000', fontWeight: 'bold'},
+  footerText: {fontSize: fs(15)},
+  loginLink: {fontSize: fs(15), color: '#FF0000', fontWeight: 'bold'},
   apiErrorBox: {backgroundColor: '#fff5f5', borderWidth: 1, borderColor: '#FF0000', borderRadius: 8, padding: 12, marginBottom: 12},
-  apiErrorText: {color: '#FF0000', fontSize: 14, textAlign: 'center', fontWeight: '600'},
+  apiErrorText: {color: '#FF0000', fontSize: fs(14), textAlign: 'center', fontWeight: '600'},
 });
 
 export default RegisterScreen;

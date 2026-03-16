@@ -4,6 +4,7 @@ import {SafeAreaView} from 'react-native-safe-area-context';
 import {useTheme} from '../context/ThemeContext';
 import {useLanguage} from '../context/LanguageContext';
 import {BackIcon, ChevronRightIcon} from '../components/Icons';
+import {s, vs, fs} from '../utils/scale';
 
 const PoliciesScreen = ({navigation}) => {
   const {theme, isDark} = useTheme();
@@ -170,32 +171,32 @@ const styles = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingHorizontal: 18, paddingVertical: 16, borderBottomWidth: 1,
   },
-  headerTitle: {fontSize: 20, fontWeight: 'bold'},
+  headerTitle: {fontSize: fs(20), fontWeight: 'bold'},
   introBanner: {margin: 16, marginBottom: 8, padding: 20, borderRadius: 16, borderWidth: 1, alignItems: 'center'},
-  introIcon: {fontSize: 40, marginBottom: 10},
-  introTitle: {fontSize: 18, fontWeight: 'bold', marginBottom: 8, textAlign: 'center'},
-  introSub: {fontSize: 13, lineHeight: 20, textAlign: 'center', marginBottom: 10},
-  lastUpdated: {fontSize: 12, fontWeight: '500'},
+  introIcon: {fontSize: fs(40), marginBottom: 10},
+  introTitle: {fontSize: fs(18), fontWeight: 'bold', marginBottom: 8, textAlign: 'center'},
+  introSub: {fontSize: fs(13), lineHeight: fs(20), textAlign: 'center', marginBottom: 10},
+  lastUpdated: {fontSize: fs(12), fontWeight: '500'},
   policyCard: {marginHorizontal: 16, marginBottom: 10, borderRadius: 14, borderWidth: 1.5, overflow: 'hidden'},
   policyHeader: {flexDirection: 'row', alignItems: 'center', padding: 16, gap: 12},
   policyIconBox: {width: 46, height: 46, borderRadius: 12, alignItems: 'center', justifyContent: 'center'},
-  policyIconText: {fontSize: 22},
+  policyIconText: {fontSize: fs(22)},
   policyMeta: {flex: 1},
-  policyTitle: {fontSize: 15, fontWeight: 'bold', marginBottom: 2},
-  policySubtitle: {fontSize: 12, fontWeight: '600'},
+  policyTitle: {fontSize: fs(15), fontWeight: 'bold', marginBottom: 2},
+  policySubtitle: {fontSize: fs(12), fontWeight: '600'},
   sectionsContainer: {borderTopWidth: 1, paddingVertical: 4},
   sectionItem: {paddingHorizontal: 16},
   sectionHeader: {flexDirection: 'row', alignItems: 'center', paddingVertical: 13, gap: 10},
   sectionDot: {width: 8, height: 8, borderRadius: 4, flexShrink: 0},
-  sectionHeading: {flex: 1, fontSize: 14, fontWeight: '600'},
-  sectionBody: {fontSize: 13, lineHeight: 21, paddingBottom: 14, paddingLeft: 18, borderLeftWidth: 2, marginLeft: 3},
+  sectionHeading: {flex: 1, fontSize: fs(14), fontWeight: '600'},
+  sectionBody: {fontSize: fs(13), lineHeight: fs(21), paddingBottom: 14, paddingLeft: 18, borderLeftWidth: 2, marginLeft: 3},
   contactCard: {margin: 16, marginBottom: 8, padding: 20, borderRadius: 14, borderWidth: 1},
-  contactTitle: {fontSize: 17, fontWeight: 'bold', marginBottom: 8},
-  contactBody: {fontSize: 13, lineHeight: 20, marginBottom: 14},
+  contactTitle: {fontSize: fs(17), fontWeight: 'bold', marginBottom: 8},
+  contactBody: {fontSize: fs(13), lineHeight: fs(20), marginBottom: 14},
   contactRow: {marginBottom: 14},
-  contactItem: {fontSize: 14, fontWeight: '600', marginBottom: 4},
+  contactItem: {fontSize: fs(14), fontWeight: '600', marginBottom: 4},
   chatBtn: {backgroundColor: '#FF0000', paddingVertical: 14, borderRadius: 12, alignItems: 'center'},
-  chatBtnText: {color: '#fff', fontSize: 15, fontWeight: 'bold'},
+  chatBtnText: {color: '#fff', fontSize: fs(15), fontWeight: 'bold'},
 });
 
 export default PoliciesScreen;

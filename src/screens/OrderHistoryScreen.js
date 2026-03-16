@@ -9,7 +9,7 @@ import {useTheme} from '../context/ThemeContext';
 import {useLanguage} from '../context/LanguageContext';
 import {BackIcon, ChevronRightIcon, OrderIcon} from '../components/Icons';
 import {getMyOrders, getOrdersByEmail} from '../services/api';
-import {mockOrders} from '../data/orders';
+import {s, vs, fs} from '../utils/scale';
 
 // Convert backend order format to the shape the UI expects
 const normalizeOrder = (o) => ({
@@ -62,11 +62,11 @@ const OrderHistoryScreen = ({navigation}) => {
         }
       }
 
-      // No API orders → show mock data as fallback
-      setOrders(mockOrders);
+      // No API orders → show empty
+      setOrders([]);
     } catch (err) {
       console.error('Fetch orders error:', err);
-      setOrders(mockOrders);
+      setOrders([]);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -274,53 +274,53 @@ const styles = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingHorizontal: 18, paddingVertical: 16, borderBottomWidth: 1,
   },
-  headerTitle: {fontSize: 20, fontWeight: 'bold'},
+  headerTitle: {fontSize: fs(20), fontWeight: 'bold'},
   filterBar: {paddingVertical: 12, borderBottomWidth: 1},
   filterList: {paddingHorizontal: 16, gap: 8},
   filterPill: {paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, borderWidth: 1},
-  filterText: {fontSize: 13, fontWeight: '600'},
+  filterText: {fontSize: fs(13), fontWeight: '600'},
   listContent: {padding: 16, paddingBottom: 40},
   orderCard: {borderRadius: 14, borderWidth: 1.5, marginBottom: 14, overflow: 'hidden'},
   orderHeader: {flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 14},
   orderLeft: {flexDirection: 'row', alignItems: 'center', gap: 12},
   orderIconBox: {width: 40, height: 40, borderRadius: 10, backgroundColor: 'rgba(255,0,0,0.08)', alignItems: 'center', justifyContent: 'center'},
-  orderId: {fontSize: 15, fontWeight: 'bold', marginBottom: 2},
-  orderDate: {fontSize: 12},
+  orderId: {fontSize: fs(15), fontWeight: 'bold', marginBottom: 2},
+  orderDate: {fontSize: fs(12)},
   orderRight: {flexDirection: 'row', alignItems: 'center', gap: 8},
   statusBadge: {paddingHorizontal: 10, paddingVertical: 5, borderRadius: 20},
-  statusText: {fontSize: 12, fontWeight: '700'},
+  statusText: {fontSize: fs(12), fontWeight: '700'},
   orderSummary: {flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 14, paddingVertical: 12, borderTopWidth: 1},
   thumbnailStrip: {flexDirection: 'row', alignItems: 'center'},
   thumbnail: {width: 40, height: 40, borderRadius: 8, borderWidth: 2, backgroundColor: '#f5f5f5'},
   extraItems: {width: 40, height: 40, borderRadius: 8, borderWidth: 2, alignItems: 'center', justifyContent: 'center', marginLeft: -10},
-  extraItemsText: {fontSize: 11, fontWeight: '700'},
+  extraItemsText: {fontSize: fs(11), fontWeight: '700'},
   orderMeta: {alignItems: 'flex-end'},
-  itemCountText: {fontSize: 12, marginBottom: 2},
-  orderTotal: {fontSize: 18, fontWeight: 'bold'},
+  itemCountText: {fontSize: fs(12), marginBottom: 2},
+  orderTotal: {fontSize: fs(18), fontWeight: 'bold'},
   expandedSection: {padding: 14, borderTopWidth: 1},
-  expandedTitle: {fontSize: 14, fontWeight: 'bold', marginBottom: 12},
+  expandedTitle: {fontSize: fs(14), fontWeight: 'bold', marginBottom: 12},
   productRow: {flexDirection: 'row', paddingVertical: 12},
   productImage: {width: 65, height: 65, borderRadius: 10, backgroundColor: '#f5f5f5'},
   productInfo: {flex: 1, marginLeft: 12, justifyContent: 'center'},
-  productName: {fontSize: 14, fontWeight: '600', marginBottom: 4},
-  productSpecs: {fontSize: 12, marginBottom: 6},
+  productName: {fontSize: fs(14), fontWeight: '600', marginBottom: 4},
+  productSpecs: {fontSize: fs(12), marginBottom: 6},
   productPriceRow: {flexDirection: 'row', alignItems: 'center', gap: 8},
-  productPrice: {fontSize: 15, fontWeight: 'bold', color: '#FF0000'},
-  productQty: {fontSize: 13},
+  productPrice: {fontSize: fs(15), fontWeight: 'bold', color: '#FF0000'},
+  productQty: {fontSize: fs(13)},
   actionButtons: {flexDirection: 'row', gap: 10, marginTop: 14},
   actionBtn: {flex: 1, paddingVertical: 12, borderRadius: 10, alignItems: 'center'},
   reviewBtn: {backgroundColor: '#FF0000'},
-  reviewBtnText: {color: '#fff', fontSize: 13, fontWeight: '700'},
+  reviewBtnText: {color: '#fff', fontSize: fs(13), fontWeight: '700'},
   trackBtn: {backgroundColor: '#2980b9'},
-  trackBtnText: {color: '#fff', fontSize: 13, fontWeight: '700'},
+  trackBtnText: {color: '#fff', fontSize: fs(13), fontWeight: '700'},
   reorderBtn: {borderWidth: 1.5},
-  reorderBtnText: {fontSize: 13, fontWeight: '700'},
+  reorderBtnText: {fontSize: fs(13), fontWeight: '700'},
   loadingContainer: {flex: 1, alignItems: 'center', justifyContent: 'center', paddingTop: 80},
   emptyContainer: {alignItems: 'center', paddingTop: 80},
-  emptyIcon: {fontSize: 70, marginBottom: 16},
-  emptyText: {fontSize: 18, fontWeight: '600', marginBottom: 24},
+  emptyIcon: {fontSize: fs(70), marginBottom: 16},
+  emptyText: {fontSize: fs(18), fontWeight: '600', marginBottom: 24},
   shopNowBtn: {backgroundColor: '#FF0000', paddingHorizontal: 32, paddingVertical: 14, borderRadius: 12},
-  shopNowText: {color: '#fff', fontSize: 16, fontWeight: 'bold'},
+  shopNowText: {color: '#fff', fontSize: fs(16), fontWeight: 'bold'},
 });
 
 export default OrderHistoryScreen;

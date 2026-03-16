@@ -14,6 +14,7 @@ import {useLanguage} from '../context/LanguageContext';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {BackIcon, PlusIcon, MinusIcon, CloseIcon, CheckIcon} from '../components/Icons';
+import {s, vs, fs} from '../utils/scale';
 
 const CartScreen = ({navigation}) => {
   const {
@@ -41,7 +42,7 @@ const CartScreen = ({navigation}) => {
       <TouchableOpacity
         style={[styles.checkbox, item.selected && styles.checkboxSelected]}
         onPress={() => toggleItemSelection(item.id)}>
-        {item.selected && <CheckIcon size={16} color="#fff" />}
+        {item.selected && <CheckIcon size={12} color="#fff" />}
       </TouchableOpacity>
 
       {/* Product Info */}
@@ -51,36 +52,25 @@ const CartScreen = ({navigation}) => {
         activeOpacity={0.7}>
         <Image source={{uri: item.image}} style={styles.itemImage} />
         <View style={styles.itemInfo}>
-          <Text style={[styles.itemName, {color: theme.text}]} numberOfLines={2}>
+          <Text style={[styles.itemName, {color: theme.text}]} numberOfLines={1}>
             {item.name}
           </Text>
-          {(item.selectedSize || item.selectedColor) && (
-            <View style={styles.specsRow}>
-              {item.selectedSize && (
-                <Text style={[styles.specText, {color: theme.subText}]}>
-                  {t('size')}: {item.selectedSize}
-                </Text>
-              )}
-              {item.selectedColor && (
-                <Text style={[styles.specText, {color: theme.subText}]}>
-                  {item.selectedSize && ' | '}{t('color')}: {item.selectedColor}
-                </Text>
-              )}
+          {/* Price + Quantity on same row */}
+          <View style={styles.priceQtyRow}>
+            <Text style={styles.itemPrice}>{item.price}</Text>
+            <View style={styles.quantityContainer}>
+              <TouchableOpacity
+                style={styles.quantityButton}
+                onPress={() => updateQuantity(item.id, -1)}>
+                <MinusIcon size={10} color="#fff" />
+              </TouchableOpacity>
+              <Text style={[styles.quantity, {color: theme.text}]}>{item.quantity}</Text>
+              <TouchableOpacity
+                style={styles.quantityButton}
+                onPress={() => updateQuantity(item.id, 1)}>
+                <PlusIcon size={10} color="#fff" />
+              </TouchableOpacity>
             </View>
-          )}
-          <Text style={styles.itemPrice}>{item.price}</Text>
-          <View style={styles.quantityContainer}>
-            <TouchableOpacity
-              style={styles.quantityButton}
-              onPress={() => updateQuantity(item.id, -1)}>
-              <MinusIcon size={16} color="#fff" />
-            </TouchableOpacity>
-            <Text style={[styles.quantity, {color: theme.text}]}>{item.quantity}</Text>
-            <TouchableOpacity
-              style={styles.quantityButton}
-              onPress={() => updateQuantity(item.id, 1)}>
-              <PlusIcon size={16} color="#fff" />
-            </TouchableOpacity>
           </View>
         </View>
       </TouchableOpacity>
@@ -89,7 +79,7 @@ const CartScreen = ({navigation}) => {
       <TouchableOpacity
         style={styles.removeButton}
         onPress={() => removeFromCart(item.id)}>
-        <CloseIcon size={20} color={theme.subText} />
+        <CloseIcon size={14} color={theme.subText} />
       </TouchableOpacity>
     </View>
   );
@@ -170,10 +160,10 @@ const CartScreen = ({navigation}) => {
             contentContainerStyle={styles.listContainer}
           />
 
-          {/* Footer */}
-          <View style={[styles.footer, {backgroundColor: theme.cardBg, borderTopColor: theme.border, paddingBottom: insets.bottom + 16}]}>
-            <View style={styles.totalContainer}>
-              <View>
+          {/* Footer — single row: price left, checkout right */}
+          <View style={[styles.footer, {backgroundColor: theme.cardBg, borderTopColor: theme.border, paddingBottom: insets.bottom + 8}]}>
+            <View style={styles.footerRow}>
+              <View style={styles.totalContainer}>
                 <Text style={[styles.totalLabel, {color: theme.subText}]}>
                   {t('total')} ({selectedCount} {t('selected')}):
                 </Text>
@@ -181,22 +171,22 @@ const CartScreen = ({navigation}) => {
                   €{getSelectedTotal()}
                 </Text>
               </View>
+              <TouchableOpacity
+                style={[
+                  styles.checkoutButton,
+                  selectedCount === 0 && styles.checkoutButtonDisabled,
+                ]}
+                onPress={() => {
+                  if (selectedCount > 0) {
+                    navigation.navigate('Checkout');
+                  }
+                }}
+                disabled={selectedCount === 0}>
+                <Text style={styles.checkoutButtonText}>
+                  {t('checkout')} ({selectedCount})
+                </Text>
+              </TouchableOpacity>
             </View>
-            <TouchableOpacity
-              style={[
-                styles.checkoutButton,
-                selectedCount === 0 && styles.checkoutButtonDisabled,
-              ]}
-              onPress={() => {
-                if (selectedCount > 0) {
-                  navigation.navigate('Checkout');
-                }
-              }}
-              disabled={selectedCount === 0}>
-              <Text style={styles.checkoutButtonText}>
-                {t('checkout')} ({selectedCount})
-              </Text>
-            </TouchableOpacity>
           </View>
         </>
       )}
@@ -212,25 +202,25 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 18,
-    paddingVertical: 16,
+    paddingHorizontal: 14,
+    paddingVertical: 14,
     borderBottomWidth: 1,
   },
   headerTitle: {
-    fontSize: 20,
+    fontSize: fs(16),
     fontWeight: 'bold',
   },
   clearButton: {
     color: '#FF0000',
-    fontSize: 13,
+    fontSize: fs(11),
     fontWeight: '600',
   },
   selectionBar: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 18,
-    paddingVertical: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
     borderBottomWidth: 1,
   },
   selectAllButton: {
@@ -238,18 +228,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   selectAllText: {
-    fontSize: 15,
+    fontSize: fs(12),
     fontWeight: '600',
-    marginLeft: 10,
+    marginLeft: 8,
   },
   selectedInfo: {
-    fontSize: 13,
+    fontSize: fs(11),
   },
   checkbox: {
-    width: 24,
-    height: 24,
-    borderRadius: 6,
-    borderWidth: 2,
+    width: 16,
+    height: 16,
+    borderRadius: 4,
+    borderWidth: 1.5,
     borderColor: '#ddd',
     alignItems: 'center',
     justifyContent: 'center',
@@ -259,56 +249,60 @@ const styles = StyleSheet.create({
     borderColor: '#FF0000',
   },
   listContainer: {
-    padding: 15,
-    paddingBottom: 20,
+    padding: 8,
+    paddingBottom: 16,
   },
   cartItem: {
-    borderRadius: 12,
-    padding: 12,
-    marginBottom: 12,
+    borderRadius: 10,
+    padding: 10,
+    marginBottom: 6,
     flexDirection: 'row',
     alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: {width: 0, height: 1},
-    shadowOpacity: 0.08,
-    shadowRadius: 3,
-    elevation: 2,
+    shadowOpacity: 0.06,
+    shadowRadius: 2,
+    elevation: 1,
   },
   itemContent: {
     flex: 1,
     flexDirection: 'row',
-    marginLeft: 12,
+    marginLeft: 6,
   },
   itemImage: {
-    width: 80,
-    height: 80,
-    borderRadius: 10,
+    width: 55,
+    height: 55,
+    borderRadius: 6,
     backgroundColor: '#f5f5f5',
   },
   itemInfo: {
     flex: 1,
-    marginLeft: 12,
-    justifyContent: 'space-between',
+    marginLeft: 8,
+    justifyContent: 'center',
   },
   itemName: {
-    fontSize: 14,
+    fontSize: fs(13),
     fontWeight: '600',
-    marginBottom: 4,
+    marginBottom: 3,
+  },
+  priceQtyRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
   specsRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    marginBottom: 4,
+    marginBottom: 2,
   },
   specText: {
-    fontSize: 12,
+    fontSize: fs(9),
     fontWeight: '500',
   },
   itemPrice: {
-    fontSize: 18,
+    fontSize: fs(14),
     fontWeight: 'bold',
     color: '#FF0000',
-    marginBottom: 8,
   },
   quantityContainer: {
     flexDirection: 'row',
@@ -316,25 +310,25 @@ const styles = StyleSheet.create({
   },
   quantityButton: {
     backgroundColor: '#FF0000',
-    width: 28,
-    height: 28,
-    borderRadius: 14,
+    width: 25,
+    height: 25,
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
   },
   quantity: {
-    marginHorizontal: 12,
-    fontSize: 16,
+    marginHorizontal: 8,
+    fontSize: fs(11),
     fontWeight: 'bold',
-    minWidth: 20,
+    minWidth: 16,
     textAlign: 'center',
   },
   removeButton: {
-    width: 32,
-    height: 32,
+    width: 22,
+    height: 22,
     alignItems: 'center',
     justifyContent: 'center',
-    marginLeft: 8,
+    marginLeft: 12,
   },
   emptyCart: {
     flex: 1,
@@ -343,11 +337,11 @@ const styles = StyleSheet.create({
     padding: 40,
   },
   emptyCartIcon: {
-    fontSize: 80,
+    fontSize: fs(80),
     marginBottom: 20,
   },
   emptyCartText: {
-    fontSize: 18,
+    fontSize: fs(18),
     marginBottom: 30,
     fontWeight: '600',
   },
@@ -359,11 +353,12 @@ const styles = StyleSheet.create({
   },
   shopButtonText: {
     color: '#ffffff',
-    fontSize: 16,
+    fontSize: fs(16),
     fontWeight: 'bold',
   },
   footer: {
-    padding: 20,
+    paddingHorizontal: 12,
+    paddingTop: 10,
     borderTopWidth: 1,
     shadowColor: '#000',
     shadowOffset: {width: 0, height: -2},
@@ -371,22 +366,28 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 5,
   },
+  footerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
   totalContainer: {
-    marginBottom: 15,
+    flex: 1,
   },
   totalLabel: {
-    fontSize: 14,
-    marginBottom: 4,
+    fontSize: fs(10),
   },
   totalAmount: {
-    fontSize: 32,
+    fontSize: fs(16),
     fontWeight: 'bold',
   },
   checkoutButton: {
     backgroundColor: '#FF0000',
-    padding: 16,
-    borderRadius: 10,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 8,
     alignItems: 'center',
+    marginLeft: 12,
     shadowColor: '#FF0000',
     shadowOpacity: 0.3,
     shadowRadius: 4,
@@ -399,14 +400,14 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     borderWidth: 1.5,
   },
-  clearConfirmTitle: {fontSize: 16, fontWeight: 'bold', marginBottom: 4},
-  clearConfirmSub: {fontSize: 13, marginBottom: 16},
+  clearConfirmTitle: {fontSize: fs(16), fontWeight: 'bold', marginBottom: 4},
+  clearConfirmSub: {fontSize: fs(13), marginBottom: 16},
   clearConfirmBtns: {flexDirection: 'row', gap: 12},
   clearConfirmBtn: {flex: 1, paddingVertical: 12, borderRadius: 10, alignItems: 'center'},
   clearCancelBtn: {borderWidth: 1.5},
-  clearCancelText: {fontSize: 15, fontWeight: '600'},
+  clearCancelText: {fontSize: fs(15), fontWeight: '600'},
   clearYesBtn: {backgroundColor: '#FF0000'},
-  clearYesText: {color: '#fff', fontSize: 15, fontWeight: 'bold'},
+  clearYesText: {color: '#fff', fontSize: fs(15), fontWeight: 'bold'},
   checkoutButtonDisabled: {
     backgroundColor: '#ccc',
     shadowOpacity: 0,
@@ -414,9 +415,8 @@ const styles = StyleSheet.create({
   },
   checkoutButtonText: {
     color: '#ffffff',
-    fontSize: 16,
+    fontSize: fs(12),
     fontWeight: 'bold',
-    letterSpacing: 0.5,
   },
 });
 

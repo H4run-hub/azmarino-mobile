@@ -12,13 +12,14 @@ import {
   useWindowDimensions,
   ActivityIndicator,
   Alert,
-  Image,
 } from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {useTheme} from '../context/ThemeContext';
 import {useLanguage} from '../context/LanguageContext';
 import {BackIcon} from '../components/Icons';
+import Icon from 'react-native-vector-icons/Ionicons';
 import {loginUser} from '../services/api';
+import {s, vs, fs} from '../utils/scale';
 
 const LoginScreen = ({navigation, onLogin}) => {
   const {theme, isDark} = useTheme();
@@ -87,11 +88,6 @@ const LoginScreen = ({navigation, onLogin}) => {
           <View style={[styles.formCard, isTablet && styles.formCardTablet, {backgroundColor: isTablet ? theme.cardBg : 'transparent'}]}>
 
             <View style={styles.logoSection}>
-              <Image
-                source={require('../assets/logo.png')}
-                style={styles.logo}
-                resizeMode="contain"
-              />
               <Text style={styles.appName}>{t('appName')}</Text>
               <Text style={[styles.welcomeText, {color: theme.subText}]}>{t('welcomeBack')}</Text>
             </View>
@@ -145,11 +141,21 @@ const LoginScreen = ({navigation, onLogin}) => {
                 <View style={[styles.dividerLine, {backgroundColor: theme.border}]} />
               </View>
 
-              <TouchableOpacity style={[styles.socialButton, {backgroundColor: theme.cardBg, borderColor: theme.border}]}>
-                <Text style={[styles.socialButtonText, {color: theme.text}]}>{t('loginGoogle')}</Text>
+              <TouchableOpacity
+                style={[styles.socialButton, {backgroundColor: theme.cardBg, borderColor: theme.border}]}
+                onPress={() => Alert.alert(t('comingSoonTitle'), t('comingSoonSub'))}>
+                <View style={styles.socialButtonInner}>
+                  <Icon name="logo-google" size={20} color="#DB4437" />
+                  <Text style={[styles.socialButtonText, {color: theme.text}]}>{t('loginGoogle')}</Text>
+                </View>
               </TouchableOpacity>
-              <TouchableOpacity style={[styles.socialButton, {backgroundColor: theme.cardBg, borderColor: theme.border}]}>
-                <Text style={[styles.socialButtonText, {color: theme.text}]}>{t('loginFacebook')}</Text>
+              <TouchableOpacity
+                style={[styles.socialButton, {backgroundColor: '#1877F2', borderColor: '#1877F2'}]}
+                onPress={() => Alert.alert(t('comingSoonTitle'), t('comingSoonSub'))}>
+                <View style={styles.socialButtonInner}>
+                  <Icon name="logo-facebook" size={20} color="#fff" />
+                  <Text style={[styles.socialButtonText, {color: '#fff'}]}>{t('loginFacebook')}</Text>
+                </View>
               </TouchableOpacity>
             </View>
 
@@ -177,7 +183,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingHorizontal: 18, paddingVertical: 16, borderBottomWidth: 1,
   },
-  headerTitle: {fontSize: 20, fontWeight: 'bold'},
+  headerTitle: {fontSize: fs(20), fontWeight: 'bold'},
   scrollContent: {flexGrow: 1, padding: 20},
   scrollContentTablet: {alignItems: 'center', paddingVertical: 40},
   formCard: {width: '100%'},
@@ -186,28 +192,29 @@ const styles = StyleSheet.create({
     shadowColor: '#000', shadowOffset: {width: 0, height: 4},
     shadowOpacity: 0.1, shadowRadius: 12, elevation: 6,
   },
-  logoSection: {alignItems: 'center', marginTop: 20, marginBottom: 36},
+  logoSection: {alignItems: 'center', marginTop: 20, marginBottom: 36, width: '100%', paddingHorizontal: 20},
   logo: {width: 90, height: 90, marginBottom: 12},
-  appName: {fontSize: 32, fontWeight: 'bold', color: '#FF0000', marginBottom: 8},
-  welcomeText: {fontSize: 16},
+  appName: {fontSize: fs(32), fontWeight: 'bold', color: '#FF0000', marginBottom: 8},
+  welcomeText: {fontSize: fs(16), textAlign: 'center'},
   form: {marginBottom: 16},
-  input: {borderRadius: 12, padding: 16, fontSize: 16, marginBottom: 4, borderWidth: 1},
-  fieldError: {color: '#FF0000', fontSize: 12, marginBottom: 10, marginLeft: 4},
-  forgotPassword: {color: '#FF0000', fontSize: 14, textAlign: 'right', marginBottom: 20, marginTop: 6, fontWeight: '600'},
+  input: {borderRadius: 12, padding: 16, fontSize: fs(16), marginBottom: 4, borderWidth: 1},
+  fieldError: {color: '#FF0000', fontSize: fs(12), marginBottom: 10, marginLeft: 4},
+  forgotPassword: {color: '#FF0000', fontSize: fs(14), textAlign: 'right', marginBottom: 20, marginTop: 6, fontWeight: '600'},
   loginButton: {backgroundColor: '#FF0000', padding: 18, borderRadius: 12, alignItems: 'center', marginBottom: 20},
-  loginButtonText: {color: '#fff', fontSize: 18, fontWeight: 'bold'},
+  loginButtonText: {color: '#fff', fontSize: fs(18), fontWeight: 'bold'},
   divider: {flexDirection: 'row', alignItems: 'center', marginVertical: 16},
   dividerLine: {flex: 1, height: 1},
-  dividerText: {marginHorizontal: 15, fontSize: 14},
+  dividerText: {marginHorizontal: 15, fontSize: fs(14)},
   socialButton: {padding: 16, borderRadius: 12, alignItems: 'center', marginBottom: 12, borderWidth: 1},
-  socialButtonText: {fontSize: 16, fontWeight: '600'},
+  socialButtonInner: {flexDirection: 'row', alignItems: 'center', gap: 10},
+  socialButtonText: {fontSize: fs(16), fontWeight: '600'},
   aboutButton: {marginTop: 16, marginBottom: 8, alignItems: 'center'},
-  aboutButtonText: {fontSize: 14, textDecorationLine: 'underline'},
+  aboutButtonText: {fontSize: fs(14), textDecorationLine: 'underline'},
   footer: {flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginTop: 16},
-  footerText: {fontSize: 15},
-  registerLink: {fontSize: 15, color: '#FF0000', fontWeight: 'bold'},
+  footerText: {fontSize: fs(15)},
+  registerLink: {fontSize: fs(15), color: '#FF0000', fontWeight: 'bold'},
   apiErrorBox: {backgroundColor: '#fff5f5', borderWidth: 1, borderColor: '#FF0000', borderRadius: 8, padding: 12, marginBottom: 12},
-  apiErrorText: {color: '#FF0000', fontSize: 14, textAlign: 'center', fontWeight: '600'},
+  apiErrorText: {color: '#FF0000', fontSize: fs(14), textAlign: 'center', fontWeight: '600'},
 });
 
 export default LoginScreen;

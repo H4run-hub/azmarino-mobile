@@ -1,5 +1,5 @@
 import React, {useState, useEffect} from 'react';
-import {View} from 'react-native';
+import {View, BackHandler, Platform} from 'react-native';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 import {StripeProvider} from '@stripe/stripe-react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -7,6 +7,7 @@ import {CartProvider} from './src/context/CartContext';
 import {ThemeProvider} from './src/context/ThemeContext';
 import {NotificationsProvider} from './src/context/NotificationsContext';
 import {LanguageProvider} from './src/context/LanguageContext';
+import {RecentlyViewedProvider} from './src/context/RecentlyViewedContext';
 import HomeScreen from './src/screens/HomeScreen';
 import CartScreen from './src/screens/CartScreen';
 import TrackOrderScreen from './src/screens/TrackOrderScreen';
@@ -24,18 +25,37 @@ import OrderHistoryScreen from './src/screens/OrderHistoryScreen';
 import NotificationsScreen from './src/screens/NotificationsScreen';
 import CameraSearchScreen from './src/screens/CameraSearchScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
-import {logoutUser} from './src/services/api';
-
-// Stripe publishable key — update this if you get a new key from Stripe dashboard
-const STRIPE_PUBLISHABLE_KEY =
-  'pk_test_51I0YRcHzx0Dmj32eAAGksDJeKA18gXUPU4oY8bz7KGzeGqbNnhmtUYak1rcpfs4K1WHfKrrpEYzbZEtYuAkqJMJO08uMqnJAG';
+import FlashSaleScreen from './src/screens/FlashSaleScreen';
+import FlashSaleDetailScreen from './src/screens/FlashSaleDetailScreen';
+import OnboardingScreen from './src/screens/OnboardingScreen';
+import EmailVerificationScreen from './src/screens/EmailVerificationScreen';
+import {logoutUser, getMe} from './src/services/api';
+import SwipeBackView from './src/components/SwipeBackView';
+import BottomTabBar from './src/components/BottomTabBar';
+import {STRIPE_PUBLISHABLE_KEY} from './src/config/apiConfig';
 
 function App() {
   const [stack, setStack] = useState([{name: 'Home', params: null}]);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [user, setUser] = useState<any>(null);
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [onboardingChecked, setOnboardingChecked] = useState(false);
+  const [homeScrollKey, setHomeScrollKey] = useState(0);
 
-  // Restore login session from AsyncStorage on app start
+  // Check if user has seen onboarding
+  useEffect(() => {
+    AsyncStorage.getItem('azmarino_onboarded').then(val => {
+      if (!val) setShowOnboarding(true);
+      setOnboardingChecked(true);
+    });
+  }, []);
+
+  const finishOnboarding = () => {
+    AsyncStorage.setItem('azmarino_onboarded', 'true');
+    setShowOnboarding(false);
+  };
+
+  // Restore login session and sync user from backend on app start
   useEffect(() => {
     AsyncStorage.getItem('azmarino_user').then(stored => {
       if (stored) {
@@ -44,6 +64,17 @@ function App() {
           setUser(u);
           setIsLoggedIn(true);
         } catch {}
+      }
+    });
+    // Refresh user from backend when we have a token (keeps profile/address in sync)
+    AsyncStorage.getItem('azmarino_token').then(token => {
+      if (token) {
+        getMe().then(data => {
+          if (data?.user) {
+            setUser(data.user);
+            AsyncStorage.setItem('azmarino_user', JSON.stringify(data.user));
+          }
+        }).catch(() => {});
       }
     });
   }, []);
@@ -64,6 +95,20 @@ function App() {
 
   const canGoBack = () => stack.length > 1;
 
+  // Android: hardware back / swipe — navigate back inside app instead of exiting
+  useEffect(() => {
+    if (Platform.OS !== 'android') return;
+    const onBack = () => {
+      if (stack.length > 1) {
+        goBack();
+        return true;
+      }
+      return false;
+    };
+    const sub = BackHandler.addEventListener('hardwareBackPress', onBack);
+    return () => sub.remove();
+  }, [stack.length]);
+
   const handleLogin = (userData?: any) => {
     if (userData) setUser(userData);
     setIsLoggedIn(true);
@@ -77,19 +122,24 @@ function App() {
     resetStack('Login');
   };
 
-  const navigation = {navigate, goBack, resetStack, canGoBack};
+  // push is an alias for navigate — allows pushing the same screen with new params
+  const push = (screenName: string, params: any = null) => {
+    setStack(prev => [...prev, {name: screenName, params}]);
+  };
+
+  const navigation = {navigate, goBack, resetStack, canGoBack, push};
 
   const renderScreen = () => {
     const {name, params} = currentScreen;
     switch (name) {
       case 'Home':
-        return <HomeScreen navigation={navigation} isLoggedIn={isLoggedIn} />;
+        return <HomeScreen navigation={navigation} isLoggedIn={isLoggedIn} scrollToTopKey={homeScrollKey} />;
       case 'Cart':
         return <CartScreen navigation={navigation} />;
       case 'Notifications':
         return <NotificationsScreen navigation={navigation} />;
       case 'CameraSearch':
-        return <CameraSearchScreen navigation={navigation} />;
+        return <CameraSearchScreen navigation={navigation} route={{params: params || {}}} />;
       case 'Settings':
         return (
           <SettingsScreen
@@ -106,6 +156,8 @@ function App() {
         return <LoginScreen navigation={navigation} onLogin={handleLogin} />;
       case 'Register':
         return <RegisterScreen navigation={navigation} onLogin={handleLogin} />;
+      case 'EmailVerification':
+        return <EmailVerificationScreen navigation={navigation} route={{params}} onLogin={handleLogin} />;
       case 'ForgotPassword':
         return <ForgotPasswordScreen navigation={navigation} />;
       case 'AboutUs':
@@ -115,7 +167,7 @@ function App() {
       case 'ChatSupport':
         return <ChatSupportScreen navigation={navigation} />;
       case 'Checkout':
-        return <CheckoutScreen navigation={navigation} user={user} />;
+        return <CheckoutScreen navigation={navigation} user={user} onUserUpdate={setUser} />;
       case 'OrderSuccess':
         return <OrderSuccessScreen navigation={navigation} route={{params}} />;
       case 'UserProfile':
@@ -130,6 +182,10 @@ function App() {
         );
       case 'OrderHistory':
         return <OrderHistoryScreen navigation={navigation} />;
+      case 'FlashSale':
+        return <FlashSaleScreen navigation={navigation} route={{params}} />;
+      case 'FlashSaleDetail':
+        return <FlashSaleDetailScreen navigation={navigation} route={{params}} />;
       default:
         return <HomeScreen navigation={navigation} isLoggedIn={isLoggedIn} />;
     }
@@ -142,7 +198,30 @@ function App() {
           <ThemeProvider>
             <NotificationsProvider>
               <CartProvider>
-                <View style={{flex: 1}}>{renderScreen()}</View>
+                <RecentlyViewedProvider>
+                {onboardingChecked && showOnboarding ? (
+                  <OnboardingScreen onFinish={finishOnboarding} />
+                ) : (
+                  <View style={{flex: 1}}>
+                    <SwipeBackView
+                      onSwipeBack={goBack}
+                      enabled={stack.length > 1}>
+                      {renderScreen()}
+                    </SwipeBackView>
+                    <BottomTabBar
+                      currentScreenName={currentScreen.name}
+                      onNavigate={(name) => {
+                        if (name === 'Home' && currentScreen.name === 'Home') {
+                          setHomeScrollKey(k => k + 1);
+                        } else {
+                          resetStack(name);
+                          if (name === 'Home') setHomeScrollKey(k => k + 1);
+                        }
+                      }}
+                    />
+                  </View>
+                )}
+              </RecentlyViewedProvider>
               </CartProvider>
             </NotificationsProvider>
           </ThemeProvider>

@@ -11,6 +11,7 @@ import {useTheme} from '../context/ThemeContext';
 import {useLanguage} from '../context/LanguageContext';
 import {BackIcon} from '../components/Icons';
 import {createPaymentIntent, createOrder} from '../services/api';
+import {s, vs, fs} from '../utils/scale';
 
 const CheckoutScreen = ({navigation, user}) => {
   const {getSelectedItems, getSelectedTotal, removeSelectedItems} = useCart();
@@ -314,25 +315,25 @@ const styles = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingHorizontal: 18, paddingVertical: 16, borderBottomWidth: 1,
   },
-  headerTitle: {fontSize: 20, fontWeight: 'bold'},
+  headerTitle: {fontSize: fs(20), fontWeight: 'bold'},
   content: {flex: 1},
   section: {padding: 20, marginBottom: 10},
-  sectionTitle: {fontSize: 18, fontWeight: 'bold', marginBottom: 15},
+  sectionTitle: {fontSize: fs(18), fontWeight: 'bold', marginBottom: 15},
 
   // Order summary
   orderItemContainer: {marginBottom: 12},
   orderItemRow: {flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center'},
-  orderItemName: {fontSize: 14, flex: 1, marginRight: 10},
-  orderItemSpecs: {fontSize: 12, marginTop: 4},
-  orderItemPrice: {fontSize: 14, fontWeight: '600', color: '#FF0000'},
+  orderItemName: {fontSize: fs(14), flex: 1, marginRight: 10},
+  orderItemSpecs: {fontSize: fs(12), marginTop: 4},
+  orderItemPrice: {fontSize: fs(14), fontWeight: '600', color: '#FF0000'},
   dividerLine: {height: 1, marginVertical: 15},
-  orderTotalLabel: {fontSize: 16, fontWeight: 'bold'},
-  orderTotalPrice: {fontSize: 20, fontWeight: 'bold', color: '#FF0000'},
+  orderTotalLabel: {fontSize: fs(16), fontWeight: 'bold'},
+  orderTotalPrice: {fontSize: fs(20), fontWeight: 'bold', color: '#FF0000'},
 
   // Inputs
-  input: {borderRadius: 12, padding: 14, fontSize: 15, marginBottom: 4, borderWidth: 1},
-  inputHalf: {borderRadius: 12, padding: 14, fontSize: 15, marginBottom: 4, borderWidth: 1},
-  fieldError: {color: '#FF0000', fontSize: 12, marginBottom: 10, marginLeft: 4},
+  input: {borderRadius: 12, padding: 14, fontSize: fs(15), marginBottom: 4, borderWidth: 1},
+  inputHalf: {borderRadius: 12, padding: 14, fontSize: fs(15), marginBottom: 4, borderWidth: 1},
+  fieldError: {color: '#FF0000', fontSize: fs(12), marginBottom: 10, marginLeft: 4},
   row: {flexDirection: 'row', gap: 10},
 
   // Stripe note
@@ -341,14 +342,14 @@ const styles = StyleSheet.create({
     padding: 16, borderRadius: 12, borderWidth: 2, borderColor: '#FF0000',
     backgroundColor: 'rgba(255,0,0,0.04)',
   },
-  stripeIcon: {fontSize: 28, marginRight: 14},
-  stripeTitle: {fontSize: 16, fontWeight: '600', marginBottom: 4},
-  stripeSub: {fontSize: 13},
+  stripeIcon: {fontSize: fs(28), marginRight: 14},
+  stripeTitle: {fontSize: fs(16), fontWeight: '600', marginBottom: 4},
+  stripeSub: {fontSize: fs(13)},
 
   // Info box
   infoBox: {margin: 20, padding: 16, borderRadius: 12, borderWidth: 1},
-  infoTitle: {fontSize: 15, fontWeight: 'bold', marginBottom: 8},
-  infoText: {fontSize: 14, lineHeight: 24},
+  infoTitle: {fontSize: fs(15), fontWeight: 'bold', marginBottom: 8},
+  infoText: {fontSize: fs(14), lineHeight: fs(24)},
 
   // Footer
   footer: {
@@ -360,13 +361,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row', justifyContent: 'space-between',
     alignItems: 'center', marginBottom: 15,
   },
-  footerLabel: {fontSize: 15},
-  footerAmount: {fontSize: 28, fontWeight: 'bold'},
+  footerLabel: {fontSize: fs(15)},
+  footerAmount: {fontSize: fs(28), fontWeight: 'bold'},
   placeOrderButton: {
     backgroundColor: '#FF0000', padding: 18,
     borderRadius: 12, alignItems: 'center',
   },
-  placeOrderText: {color: '#fff', fontSize: 17, fontWeight: 'bold', letterSpacing: 0.5},
+  placeOrderText: {color: '#fff', fontSize: fs(17), fontWeight: 'bold', letterSpacing: 0.5},
 });
 
 export default CheckoutScreen;

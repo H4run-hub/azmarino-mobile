@@ -4,6 +4,7 @@ import {useLanguage} from '../context/LanguageContext';
 import {BackIcon} from '../components/Icons';
 import {View, Text, StyleSheet, ScrollView, TouchableOpacity, StatusBar} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
+import {s, vs, fs} from '../utils/scale';
 
 const AboutUsScreen = ({navigation}) => {
   const {theme, isDark} = useTheme();
@@ -92,7 +93,7 @@ const AboutUsScreen = ({navigation}) => {
           <Text style={[styles.contactDescription, {color: theme.subText}]}>{t('aboutContactDesc')}</Text>
           <View style={[styles.contactInfoBox, {backgroundColor: isDark ? 'rgba(255,0,0,0.08)' : '#fff9f9', borderColor: theme.border}]}>
             <Text style={[styles.contactLabel, {color: theme.subText}]}>{t('aboutEmailLabel')}</Text>
-            <Text style={[styles.contactValue, {color: theme.text}]}>support@azmarino.com</Text>
+            <Text style={[styles.contactValue, {color: theme.text}]}>support@azmarino.online</Text>
           </View>
           <TouchableOpacity style={styles.chatButton} onPress={() => navigation.navigate('ChatSupport')}>
             <Text style={styles.chatButtonText}>{t('aboutChatBtn')}</Text>
@@ -111,29 +112,29 @@ const styles = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingHorizontal: 18, paddingVertical: 16, borderBottomWidth: 1,
   },
-  headerTitle: {fontSize: 20, fontWeight: 'bold'},
+  headerTitle: {fontSize: fs(20), fontWeight: 'bold'},
   content: {flex: 1},
   headerSection: {alignItems: 'center', padding: 30, marginBottom: 10},
-  mainTitle: {fontSize: 32, fontWeight: 'bold', marginBottom: 10},
-  subtitle: {fontSize: 16, textAlign: 'center', lineHeight: 24},
+  mainTitle: {fontSize: fs(32), fontWeight: 'bold', marginBottom: 10},
+  subtitle: {fontSize: fs(16), textAlign: 'center', lineHeight: fs(24)},
   section: {padding: 25, marginBottom: 10},
-  sectionTitle: {fontSize: 22, fontWeight: 'bold', color: '#FF0000', marginBottom: 15},
-  sectionText: {fontSize: 16, lineHeight: 26},
+  sectionTitle: {fontSize: fs(22), fontWeight: 'bold', color: '#FF0000', marginBottom: 15},
+  sectionText: {fontSize: fs(16), lineHeight: fs(26)},
   valueItem: {flexDirection: 'row', marginBottom: 20, alignItems: 'flex-start'},
-  valueIcon: {fontSize: 24, color: '#27ae60', marginRight: 15},
+  valueIcon: {fontSize: fs(24), color: '#27ae60', marginRight: 15},
   valueContent: {flex: 1},
-  valueTitle: {fontSize: 18, fontWeight: 'bold', marginBottom: 5},
-  valueText: {fontSize: 15, lineHeight: 22},
+  valueTitle: {fontSize: fs(18), fontWeight: 'bold', marginBottom: 5},
+  valueText: {fontSize: fs(15), lineHeight: fs(22)},
   featureBox: {padding: 20, borderRadius: 12, marginBottom: 15, alignItems: 'center', borderWidth: 1},
-  featureIcon: {fontSize: 40, marginBottom: 10},
-  featureTitle: {fontSize: 18, fontWeight: 'bold', marginBottom: 8},
-  featureText: {fontSize: 14, textAlign: 'center', lineHeight: 20},
-  contactDescription: {fontSize: 15, marginBottom: 20, lineHeight: 22, textAlign: 'center'},
+  featureIcon: {fontSize: fs(40), marginBottom: 10},
+  featureTitle: {fontSize: fs(18), fontWeight: 'bold', marginBottom: 8},
+  featureText: {fontSize: fs(14), textAlign: 'center', lineHeight: fs(20)},
+  contactDescription: {fontSize: fs(15), marginBottom: 20, lineHeight: fs(22), textAlign: 'center'},
   contactInfoBox: {padding: 16, borderRadius: 12, marginBottom: 20, borderWidth: 1},
-  contactLabel: {fontSize: 14, fontWeight: '600', marginBottom: 6},
-  contactValue: {fontSize: 16, fontWeight: 'bold'},
+  contactLabel: {fontSize: fs(14), fontWeight: '600', marginBottom: 6},
+  contactValue: {fontSize: fs(16), fontWeight: 'bold'},
   chatButton: {backgroundColor: '#FF0000', padding: 16, borderRadius: 12, alignItems: 'center', marginTop: 15},
-  chatButtonText: {color: '#fff', fontSize: 16, fontWeight: 'bold'},
+  chatButtonText: {color: '#fff', fontSize: fs(16), fontWeight: 'bold'},
 });
 
 export default AboutUsScreen;

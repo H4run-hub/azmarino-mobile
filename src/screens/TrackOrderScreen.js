@@ -8,29 +8,25 @@ import {useTheme} from '../context/ThemeContext';
 import {useLanguage} from '../context/LanguageContext';
 import {BackIcon} from '../components/Icons';
 import {trackOrder as trackOrderAPI} from '../services/api';
+import {s, vs, fs} from '../utils/scale';
 
 const TrackOrderScreen = ({navigation, user}) => {
   const {theme, isDark} = useTheme();
   const {t, language} = useLanguage();
   const [orderNumber, setOrderNumber] = useState('');
-  const [email, setEmail] = useState(user?.email || '');
   const [trackingResult, setTrackingResult] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
   const handleTrack = async () => {
     if (!orderNumber.trim()) return;
-    if (!email.trim()) {
-      setError(t('errEmail'));
-      return;
-    }
     setLoading(true);
     setError(null);
     setTrackingResult(null);
     try {
       const data = await trackOrderAPI(
         orderNumber.trim().toUpperCase(),
-        email.trim().toLowerCase(),
+        user?.email || '',
       );
       if (data.success && data.order) {
         setTrackingResult(data.order);
@@ -45,7 +41,7 @@ const TrackOrderScreen = ({navigation, user}) => {
     }
   };
 
-  const isDisabled = loading || !orderNumber.trim() || !email.trim();
+  const isDisabled = loading || !orderNumber.trim();
 
   // Determine which step is the "current" active step (last completed step)
   const getCurrentStepIndex = steps => {
@@ -88,18 +84,6 @@ const TrackOrderScreen = ({navigation, user}) => {
             value={orderNumber}
             onChangeText={text => setOrderNumber(text.toUpperCase())}
             autoCapitalize="characters"
-          />
-
-          {/* Email */}
-          <TextInput
-            style={[styles.input, {backgroundColor: theme.bg, color: theme.text, borderColor: theme.border}]}
-            placeholder={t('emailPlaceholder')}
-            placeholderTextColor={theme.subText}
-            value={email}
-            onChangeText={setEmail}
-            keyboardType="email-address"
-            autoCapitalize="none"
-            autoCorrect={false}
           />
 
           {error && (
@@ -253,25 +237,25 @@ const styles = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingHorizontal: 18, paddingVertical: 16, borderBottomWidth: 1,
   },
-  headerTitle: {fontSize: 20, fontWeight: 'bold'},
+  headerTitle: {fontSize: fs(20), fontWeight: 'bold'},
   content: {flex: 1},
   searchSection: {margin: 15, padding: 20, borderRadius: 12, elevation: 2},
-  sectionTitle: {fontSize: 18, fontWeight: 'bold', marginBottom: 8},
-  sectionDesc: {fontSize: 14, marginBottom: 15},
+  sectionTitle: {fontSize: fs(18), fontWeight: 'bold', marginBottom: 8},
+  sectionDesc: {fontSize: fs(14), marginBottom: 15},
   input: {
-    borderRadius: 10, padding: 14, fontSize: 16, marginBottom: 12,
+    borderRadius: 10, padding: 14, fontSize: fs(16), marginBottom: 12,
     borderWidth: 1, fontWeight: '600',
   },
   errorBox: {
     backgroundColor: '#fff0f0', padding: 15, borderRadius: 10,
     marginBottom: 15, borderWidth: 1, borderColor: '#ffcccc',
   },
-  errorText: {color: '#d32f2f', fontSize: 14, marginBottom: 10, fontWeight: '600'},
+  errorText: {color: '#d32f2f', fontSize: fs(14), marginBottom: 10, fontWeight: '600'},
   helpButton: {backgroundColor: '#FF0000', padding: 10, borderRadius: 8, alignItems: 'center'},
-  helpButtonText: {color: '#fff', fontSize: 13, fontWeight: 'bold'},
+  helpButtonText: {color: '#fff', fontSize: fs(13), fontWeight: 'bold'},
   trackButton: {backgroundColor: '#FF0000', padding: 16, borderRadius: 10, alignItems: 'center'},
   trackButtonDisabled: {backgroundColor: '#999'},
-  trackButtonText: {color: '#fff', fontSize: 16, fontWeight: 'bold'},
+  trackButtonText: {color: '#fff', fontSize: fs(16), fontWeight: 'bold'},
 
   // Status card
   statusCard: {margin: 15, marginTop: 0, padding: 20, borderRadius: 12, elevation: 2},
@@ -279,21 +263,21 @@ const styles = StyleSheet.create({
     flexDirection: 'row', justifyContent: 'space-between',
     alignItems: 'center', marginBottom: 15,
   },
-  orderNum: {fontSize: 16, fontWeight: 'bold'},
+  orderNum: {fontSize: fs(16), fontWeight: 'bold'},
   statusBadge: {
     backgroundColor: '#FF0000', paddingHorizontal: 12,
     paddingVertical: 6, borderRadius: 20,
   },
-  statusBadgeText: {color: '#fff', fontSize: 12, fontWeight: 'bold'},
+  statusBadgeText: {color: '#fff', fontSize: fs(12), fontWeight: 'bold'},
   deliveryInfo: {
     flexDirection: 'row', justifyContent: 'space-between',
     marginBottom: 15, paddingBottom: 15, borderBottomWidth: 1,
   },
-  deliveryLabel: {fontSize: 14},
-  deliveryValue: {fontSize: 14, fontWeight: 'bold', color: '#FF0000'},
+  deliveryLabel: {fontSize: fs(14)},
+  deliveryValue: {fontSize: fs(14), fontWeight: 'bold', color: '#FF0000'},
   locationInfo: {flexDirection: 'row', alignItems: 'center'},
-  locationIcon: {fontSize: 20, marginRight: 8},
-  locationText: {fontSize: 14, fontWeight: '600'},
+  locationIcon: {fontSize: fs(20), marginRight: 8},
+  locationText: {fontSize: fs(14), fontWeight: '600'},
 
   // Timeline
   timelineSection: {margin: 15, marginTop: 0, padding: 20, borderRadius: 12, elevation: 2},
@@ -305,28 +289,28 @@ const styles = StyleSheet.create({
   },
   timelineDotCompleted: {backgroundColor: '#27ae60', borderColor: '#27ae60'},
   timelineDotCurrent: {backgroundColor: '#FF0000', borderColor: '#FF0000'},
-  checkmark: {color: '#fff', fontSize: 12, fontWeight: 'bold'},
+  checkmark: {color: '#fff', fontSize: fs(12), fontWeight: 'bold'},
   timelineLine: {width: 2, flex: 1, backgroundColor: '#e9ecef', marginTop: 4},
   timelineLineCompleted: {backgroundColor: '#27ae60'},
   timelineRight: {flex: 1, paddingBottom: 20},
-  timelineStatus: {fontSize: 15, fontWeight: '600', marginBottom: 4},
+  timelineStatus: {fontSize: fs(15), fontWeight: '600', marginBottom: 4},
   timelineStatusCurrent: {color: '#FF0000', fontWeight: 'bold'},
 
   // Items list
   itemsSection: {margin: 15, marginTop: 0, padding: 20, borderRadius: 12, elevation: 2},
   itemRow: {paddingVertical: 10, borderBottomWidth: 1},
-  itemName: {fontSize: 14, fontWeight: '600', marginBottom: 2},
-  itemMeta: {fontSize: 13},
+  itemName: {fontSize: fs(14), fontWeight: '600', marginBottom: 2},
+  itemMeta: {fontSize: fs(13)},
 
   // Help card
   helpCard: {
     backgroundColor: '#fff3f3', margin: 15, marginTop: 0, marginBottom: 30,
     padding: 20, borderRadius: 12, borderWidth: 1, borderColor: '#ffe0e0',
   },
-  helpTitle: {fontSize: 16, fontWeight: 'bold', color: '#1a1a1a', marginBottom: 8},
-  helpText: {fontSize: 14, color: '#666', marginBottom: 15, lineHeight: 20},
+  helpTitle: {fontSize: fs(16), fontWeight: 'bold', color: '#1a1a1a', marginBottom: 8},
+  helpText: {fontSize: fs(14), color: '#666', marginBottom: 15, lineHeight: fs(20)},
   contactButton: {backgroundColor: '#FF0000', padding: 12, borderRadius: 8, alignItems: 'center'},
-  contactButtonText: {color: '#fff', fontSize: 14, fontWeight: 'bold'},
+  contactButtonText: {color: '#fff', fontSize: fs(14), fontWeight: 'bold'},
 });
 
 export default TrackOrderScreen;

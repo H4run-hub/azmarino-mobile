@@ -6,4 +6,11 @@
         <item name="android:editTextBackground">@drawable/rn_edit_text_material</item>
     </style>
 
+    <!-- Splash screen theme: shown while JS bundle loads -->
+    <style name="SplashTheme" parent="Theme.AppCompat.NoActionBar">
+        <item name="android:windowBackground">@drawable/splash_background</item>
+        <item name="android:statusBarColor">@color/splash_bg</item>
+        <item name="android:navigationBarColor">@color/splash_bg</item>
+    </style>
+
 </resources>

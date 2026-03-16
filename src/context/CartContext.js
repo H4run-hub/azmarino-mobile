@@ -1,6 +1,9 @@
-import React, {createContext, useState, useContext} from 'react';
+import React, {createContext, useState, useContext, useEffect, useRef, useMemo, useCallback} from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const CartContext = createContext();
+
+const CART_STORAGE_KEY = 'azmarino_cart';
 
 export const useCart = () => {
   const context = useContext(CartContext);
@@ -12,21 +15,66 @@ export const useCart = () => {
 
 export const CartProvider = ({children}) => {
   const [cartItems, setCartItems] = useState([]);
+  const [loaded, setLoaded] = useState(false);
+  const isFirstRender = useRef(true);
+
+  // Load cart from AsyncStorage on mount
+  useEffect(() => {
+    AsyncStorage.getItem(CART_STORAGE_KEY)
+      .then(json => {
+        if (json) {
+          try {
+            const items = JSON.parse(json);
+            if (Array.isArray(items)) setCartItems(items);
+          } catch {}
+        }
+      })
+      .finally(() => setLoaded(true));
+  }, []);
+
+  // Persist cart to AsyncStorage whenever it changes (skip first render)
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+    if (!loaded) return;
+    AsyncStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cartItems)).catch(() => {});
+  }, [cartItems, loaded]);
+
+  const buildCartItemId = (item) => {
+    const baseId = item.originalId || item.id;
+    const sizePart = item.selectedSize ? `|size:${item.selectedSize}` : '';
+    const colorPart = item.selectedColor ? `|color:${item.selectedColor}` : '';
+    return `${baseId}${sizePart}${colorPart}`;
+  };
 
   const addToCart = (product) => {
     setCartItems(prevItems => {
-      const existingItem = prevItems.find(item => item.id === product.id);
-      
+      const computedId = buildCartItemId(product);
+      const existingItem = prevItems.find(item => item.id === computedId);
+
       if (existingItem) {
         return prevItems.map(item =>
-          item.id === product.id
-            ? {...item, quantity: item.quantity + 1}
+          item.id === computedId
+            ? {
+                ...item,
+                quantity: item.quantity + (product.quantity || 1),
+              }
             : item
         );
       }
-      
-      // Add new item with selected: true by default
-      return [...prevItems, {...product, quantity: 1, selected: true}];
+
+      return [
+        ...prevItems,
+        {
+          ...product,
+          id: computedId,
+          quantity: product.quantity || 1,
+          selected: product.selected ?? true,
+          originalId: product.originalId || product.id,
+        },
+      ];
     });
   };
 
@@ -53,7 +101,6 @@ export const CartProvider = ({children}) => {
     setCartItems([]);
   };
 
-  // NEW: Toggle item selection
   const toggleItemSelection = (productId) => {
     setCartItems(prevItems =>
       prevItems.map(item =>
@@ -62,60 +109,52 @@ export const CartProvider = ({children}) => {
     );
   };
 
-  // NEW: Select all items
   const selectAll = () => {
     setCartItems(prevItems => prevItems.map(item => ({...item, selected: true})));
   };
 
-  // NEW: Deselect all items
   const deselectAll = () => {
     setCartItems(prevItems => prevItems.map(item => ({...item, selected: false})));
   };
 
-  // NEW: Get only selected items
   const getSelectedItems = () => {
     return cartItems.filter(item => item.selected);
   };
 
-  // NEW: Get total for selected items only
   const getSelectedTotal = () => {
     return cartItems
       .filter(item => item.selected)
       .reduce((total, item) => {
-        const price = parseFloat(item.price.replace('€', ''));
+        const price = (item.priceNum || parseFloat(String(item.price).replace(/[^0-9.]/g, '')));
         return total + price * item.quantity;
       }, 0)
       .toFixed(2);
   };
 
-  // Original: Get total for all items
   const getCartTotal = () => {
     return cartItems
       .reduce((total, item) => {
-        const price = parseFloat(item.price.replace('€', ''));
+        const price = (item.priceNum || parseFloat(String(item.price).replace(/[^0-9.]/g, '')));
         return total + price * item.quantity;
       }, 0)
       .toFixed(2);
   };
 
-  // NEW: Count selected items
   const getSelectedCount = () => {
     return cartItems.filter(item => item.selected).length;
   };
 
-  // NEW: Remove selected items (after checkout)
   const removeSelectedItems = () => {
     setCartItems(prevItems => prevItems.filter(item => !item.selected));
   };
 
-  const value = {
+  const value = useMemo(() => ({
     cartItems,
     addToCart,
     updateQuantity,
     removeFromCart,
     clearCart,
     getCartTotal,
-    // New selection functions
     toggleItemSelection,
     selectAll,
     deselectAll,
@@ -123,7 +162,7 @@ export const CartProvider = ({children}) => {
     getSelectedTotal,
     getSelectedCount,
     removeSelectedItems,
-  };
+  }), [cartItems]);
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 };

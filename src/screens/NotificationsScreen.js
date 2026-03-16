@@ -12,6 +12,7 @@ import {useTheme} from '../context/ThemeContext';
 import {useLanguage} from '../context/LanguageContext';
 import {useNotifications} from '../context/NotificationsContext';
 import {BackIcon, CloseIcon, CheckIcon} from '../components/Icons';
+import {s, vs, fs} from '../utils/scale';
 
 const TYPE_COLORS = {
   order: {bg: 'rgba(41,128,185,0.12)', border: '#2980b9', dot: '#2980b9'},
@@ -77,12 +78,14 @@ const NotificationsScreen = ({navigation}) => {
               {color: theme.text},
               !item.read && styles.notifTitleUnread,
             ]}>
-            {item.title}
+            {item.titleKey ? t(item.titleKey) : item.title}
           </Text>
           <Text style={[styles.notifBody, {color: theme.subText}]} numberOfLines={2}>
-            {item.body}
+            {item.bodyKey ? t(item.bodyKey) : item.body}
           </Text>
-          <Text style={[styles.notifTime, {color: theme.subText}]}>{item.time}</Text>
+          <Text style={[styles.notifTime, {color: theme.subText}]}>
+            {item.time || (item.timeAgo ? `${item.timeAgo.value} ${item.timeAgo.unit} ago` : '')}
+          </Text>
         </View>
 
         {/* Delete button */}
@@ -211,7 +214,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
   },
   headerCenter: {flexDirection: 'row', alignItems: 'center', gap: 8},
-  headerTitle: {fontSize: 20, fontWeight: 'bold'},
+  headerTitle: {fontSize: fs(20), fontWeight: 'bold'},
   headerBadge: {
     backgroundColor: '#FF0000',
     borderRadius: 10,
@@ -220,8 +223,8 @@ const styles = StyleSheet.create({
     minWidth: 20,
     alignItems: 'center',
   },
-  headerBadgeText: {color: '#fff', fontSize: 11, fontWeight: 'bold'},
-  clearAllText: {color: '#FF0000', fontSize: 13, fontWeight: '600'},
+  headerBadgeText: {color: '#fff', fontSize: fs(11), fontWeight: 'bold'},
+  clearAllText: {color: '#FF0000', fontSize: fs(13), fontWeight: '600'},
   markAllBanner: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -230,7 +233,7 @@ const styles = StyleSheet.create({
     gap: 8,
     borderBottomWidth: 1,
   },
-  markAllText: {color: '#FF0000', fontSize: 13, fontWeight: '600', flex: 1},
+  markAllText: {color: '#FF0000', fontSize: fs(13), fontWeight: '600', flex: 1},
   filterBar: {
     flexDirection: 'row',
     paddingHorizontal: 12,
@@ -246,14 +249,14 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   filterTabActive: {backgroundColor: 'rgba(255,0,0,0.06)'},
-  filterTabText: {fontSize: 12, fontWeight: '600'},
+  filterTabText: {fontSize: fs(12), fontWeight: '600'},
   confirmCard: {
     margin: 12,
     padding: 16,
     borderRadius: 12,
     borderWidth: 1.5,
   },
-  confirmTitle: {fontSize: 15, fontWeight: 'bold', marginBottom: 12},
+  confirmTitle: {fontSize: fs(15), fontWeight: 'bold', marginBottom: 12},
   confirmBtns: {flexDirection: 'row', gap: 10},
   confirmBtn: {
     flex: 1,
@@ -262,9 +265,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 1,
   },
-  confirmCancelText: {fontSize: 14, fontWeight: '600'},
+  confirmCancelText: {fontSize: fs(14), fontWeight: '600'},
   confirmYesBtn: {backgroundColor: '#FF0000', borderColor: '#FF0000'},
-  confirmYesText: {color: '#fff', fontSize: 14, fontWeight: 'bold'},
+  confirmYesText: {color: '#fff', fontSize: fs(14), fontWeight: 'bold'},
   listContent: {paddingVertical: 8, paddingBottom: 40},
   separator: {height: 1, marginHorizontal: 16},
   notifCard: {
@@ -292,12 +295,12 @@ const styles = StyleSheet.create({
     marginRight: 12,
     flexShrink: 0,
   },
-  iconText: {fontSize: 20},
+  iconText: {fontSize: fs(20)},
   notifContent: {flex: 1, marginRight: 8},
-  notifTitle: {fontSize: 14, fontWeight: '600', marginBottom: 4, lineHeight: 20},
+  notifTitle: {fontSize: fs(14), fontWeight: '600', marginBottom: 4, lineHeight: fs(20)},
   notifTitleUnread: {fontWeight: 'bold'},
-  notifBody: {fontSize: 13, lineHeight: 19, marginBottom: 6},
-  notifTime: {fontSize: 11},
+  notifBody: {fontSize: fs(13), lineHeight: fs(19), marginBottom: 6},
+  notifTime: {fontSize: fs(11)},
   deleteBtn: {paddingTop: 2},
   emptyContainer: {
     flex: 1,
@@ -305,9 +308,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     padding: 40,
   },
-  emptyIcon: {fontSize: 64, marginBottom: 16},
-  emptyTitle: {fontSize: 20, fontWeight: 'bold', marginBottom: 8},
-  emptySubtitle: {fontSize: 14, textAlign: 'center', lineHeight: 22},
+  emptyIcon: {fontSize: fs(64), marginBottom: 16},
+  emptyTitle: {fontSize: fs(20), fontWeight: 'bold', marginBottom: 8},
+  emptySubtitle: {fontSize: fs(14), textAlign: 'center', lineHeight: fs(22)},
 });
 
 export default NotificationsScreen;

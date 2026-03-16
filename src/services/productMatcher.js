@@ -1,5 +1,3 @@
-import {products} from '../data/products';
-
 /**
  * Score a single product against the vision result.
  * Higher = better match.
@@ -37,13 +35,15 @@ const scoreProduct = (product, {category, keywords}) => {
  * ALWAYS returns results — never an empty array.
  *
  * @param {{identified, category, keywords, confidence}} visionResult
+ * @param {Array} [productList] — optional list to match against (e.g. from API); falls back to local products
  * @returns {{ results: Product[], label: string, isFallback: boolean }}
  */
-export const matchProducts = visionResult => {
+export const matchProducts = (visionResult, productList) => {
   const {identified, category, keywords = [], confidence} = visionResult;
+  const list = Array.isArray(productList) && productList.length > 0 ? productList : [];
 
   // Score every product
-  const scored = products
+  const scored = list
     .map(p => ({product: p, score: scoreProduct(p, {category, keywords})}))
     .sort((a, b) => b.score - a.score);
 

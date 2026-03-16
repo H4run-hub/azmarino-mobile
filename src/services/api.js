@@ -1,16 +1,35 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { API_BASE_URL_OVERRIDE } from '../config/apiConfig';
 
-// Always use production backend — works on physical devices and emulators
-const API_BASE_URL = 'https://api.azmarino.online';
+const API_BASE_URL = API_BASE_URL_OVERRIDE || 'https://api.azmarino.online';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 15000,
+  timeout: 20000,
   headers: {
     'Content-Type': 'application/json',
   },
 });
+
+/** User-friendly message for network/API errors (never show raw AxiosError to user). */
+export const getApiErrorMessage = (error) => {
+  if (!error) return null;
+  const msg = error.response?.data?.message;
+  if (msg && typeof msg === 'string') return msg;
+  const code = error.code || '';
+  const fullMessage = error.message || '';
+  if (code === 'ECONNABORTED' || code === 'ERR_NETWORK' || fullMessage.includes('Network Error')) {
+    return 'ሰርቨር ኣይተራኸበን። ኢንተርነት ርአ።';
+  }
+  if (error.response?.status === 401) return 'ኢመይል ወይ ፓስወርድ ጌጋ።';
+  if (error.response?.status === 503) return 'ኣገልግሎት ኣይርከብን። ደሓር ፈትን።';
+  if (error.response?.status >= 500) return 'ሰርቨር ኣርሒቑ ኣሎ። ደሓር ፈትን።';
+  if (fullMessage.includes('AxiosError') || fullMessage.includes('request failed')) {
+    return 'ሓንቲ ጌጋ ተጋጊማ። ደሓር ፈትን።';
+  }
+  return fullMessage || 'ሓንቲ ጌጋ ተጋጊማ።';
+};
 
 // ── Request interceptor: attach JWT token if available ─────────────────
 api.interceptors.request.use(
@@ -86,9 +105,39 @@ export const registerUser = async (name, email, phone, password) => {
   }
 };
 
+export const verifyEmail = async (code) => {
+  try {
+    const response = await api.post('/api/auth/verify-email', { code });
+    return response.data;
+  } catch (error) {
+    console.error('Email verification failed:', error.response?.data || error.message);
+    throw error;
+  }
+};
+
+export const resendVerification = async () => {
+  try {
+    const response = await api.post('/api/auth/resend-verification');
+    return response.data;
+  } catch (error) {
+    console.error('Resend verification failed:', error.response?.data || error.message);
+    throw error;
+  }
+};
+
 export const logoutUser = async () => {
   await AsyncStorage.removeItem('azmarino_token');
   await AsyncStorage.removeItem('azmarino_user');
+};
+
+export const requestForgotPassword = async (email) => {
+  try {
+    const response = await api.post('/api/auth/forgot-password', { email: email.trim() });
+    return response.data;
+  } catch (error) {
+    console.error('Forgot password failed:', error.response?.data || error.message);
+    throw error;
+  }
 };
 
 export const getMe = async () => {
@@ -127,12 +176,24 @@ export const changePassword = async (currentPassword, newPassword) => {
 // ────────────────────────────────────────────────────────────────────────
 // PRODUCTS
 // ────────────────────────────────────────────────────────────────────────
-export const getProducts = async (params = {}) => {
+export const getProducts = async (params = {}, retries = 1) => {
   try {
     const response = await api.get('/api/products', { params });
     return response.data;
   } catch (error) {
-    console.error('Get products failed:', error.response?.data || error.message);
+    if (retries > 0 && (!error.response || error.response.status >= 500 || error.code === 'ERR_NETWORK' || error.code === 'ECONNABORTED')) {
+      await new Promise(r => setTimeout(r, 800));
+      return getProducts(params, retries - 1);
+    }
+    // One clear log: app will use fallback products (see HomeScreen)
+    const code = error.code || '';
+    const msg = error.message || '';
+    const detail = error.response?.data?.message || error.response?.status || '';
+    if (__DEV__) {
+      console.warn(
+        `[API] Get products failed. Using fallback. | code=${code} message=${msg} ${detail ? `response=${detail}` : ''}`
+      );
+    }
     throw error;
   }
 };
@@ -145,6 +206,14 @@ export const getProductById = async (id) => {
     console.error('Get product failed:', error.response?.data || error.message);
     throw error;
   }
+};
+
+// ────────────────────────────────────────────────────────────────────────
+// VISION (camera search) — uses backend proxy so API key stays server-side
+// ────────────────────────────────────────────────────────────────────────
+export const visionIdentify = async (base64Image, mimeType = 'image/jpeg') => {
+  const response = await api.post('/api/vision/identify', { image: base64Image, mimeType });
+  return response.data;
 };
 
 // ────────────────────────────────────────────────────────────────────────
@@ -202,6 +271,29 @@ export const getOrdersByEmail = async (email) => {
     return response.data;
   } catch (error) {
     console.error('Get orders by email failed:', error.response?.data || error.message);
+    throw error;
+  }
+};
+
+// ────────────────────────────────────────────────────────────────────────
+// REVIEWS
+// ────────────────────────────────────────────────────────────────────────
+export const getReviews = async (productId) => {
+  try {
+    const response = await api.get(`/api/reviews/${productId}`);
+    return response.data;
+  } catch (error) {
+    console.error('Get reviews failed:', error.response?.data || error.message);
+    throw error;
+  }
+};
+
+export const submitReview = async (productId, rating, comment) => {
+  try {
+    const response = await api.post(`/api/reviews/${productId}`, { rating, comment });
+    return response.data;
+  } catch (error) {
+    console.error('Submit review failed:', error.response?.data || error.message);
     throw error;
   }
 };

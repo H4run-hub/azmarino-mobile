@@ -7,6 +7,7 @@ import {SafeAreaView} from 'react-native-safe-area-context';
 import {useTheme} from '../context/ThemeContext';
 import {useLanguage} from '../context/LanguageContext';
 import {BackIcon, CheckIcon} from '../components/Icons';
+import {s, vs, fs} from '../utils/scale';
 
 const ForgotPasswordScreen = ({navigation}) => {
   const {theme, isDark} = useTheme();
@@ -103,21 +104,21 @@ const styles = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingHorizontal: 18, paddingVertical: 16, borderBottomWidth: 1,
   },
-  headerTitle: {fontSize: 18, fontWeight: 'bold'},
+  headerTitle: {fontSize: fs(18), fontWeight: 'bold'},
   content: {flexGrow: 1, padding: 24, alignItems: 'center', paddingTop: 40},
   card: {
     width: '100%', maxWidth: 480, borderRadius: 20, padding: 28, alignItems: 'center',
     shadowColor: '#000', shadowOffset: {width: 0, height: 4}, shadowOpacity: 0.08, shadowRadius: 12, elevation: 4,
   },
-  iconLarge: {fontSize: 60, marginBottom: 20},
-  title: {fontSize: 22, fontWeight: 'bold', marginBottom: 12, textAlign: 'center'},
-  subtitle: {fontSize: 15, lineHeight: 24, textAlign: 'center', marginBottom: 28},
-  input: {width: '100%', borderRadius: 12, padding: 16, fontSize: 16, marginBottom: 4, borderWidth: 1},
-  fieldError: {color: '#FF0000', fontSize: 12, marginBottom: 12, alignSelf: 'flex-start', marginLeft: 4},
+  iconLarge: {fontSize: fs(60), marginBottom: 20},
+  title: {fontSize: fs(22), fontWeight: 'bold', marginBottom: 12, textAlign: 'center'},
+  subtitle: {fontSize: fs(15), lineHeight: fs(24), textAlign: 'center', marginBottom: 28},
+  input: {width: '100%', borderRadius: 12, padding: 16, fontSize: fs(16), marginBottom: 4, borderWidth: 1},
+  fieldError: {color: '#FF0000', fontSize: fs(12), marginBottom: 12, alignSelf: 'flex-start', marginLeft: 4},
   sendButton: {width: '100%', backgroundColor: '#FF0000', padding: 18, borderRadius: 12, alignItems: 'center', marginTop: 8, marginBottom: 16},
-  sendButtonText: {color: '#fff', fontSize: 17, fontWeight: 'bold'},
+  sendButtonText: {color: '#fff', fontSize: fs(17), fontWeight: 'bold'},
   backLink: {paddingVertical: 8},
-  backLinkText: {fontSize: 15},
+  backLinkText: {fontSize: fs(15)},
   successIconWrap: {marginBottom: 20},
   successCircle: {
     width: 80, height: 80, borderRadius: 40, backgroundColor: '#27ae60',
@@ -125,9 +126,9 @@ const styles = StyleSheet.create({
     shadowColor: '#27ae60', shadowOffset: {width: 0, height: 4}, shadowOpacity: 0.4, shadowRadius: 8, elevation: 8,
   },
   tipBox: {width: '100%', padding: 16, borderRadius: 12, borderWidth: 1, marginBottom: 20},
-  tipText: {fontSize: 13, lineHeight: 20},
+  tipText: {fontSize: fs(13), lineHeight: fs(20)},
   goLoginButton: {width: '100%', borderWidth: 2, padding: 16, borderRadius: 12, alignItems: 'center'},
-  goLoginText: {color: '#FF0000', fontSize: 16, fontWeight: 'bold'},
+  goLoginText: {color: '#FF0000', fontSize: fs(16), fontWeight: 'bold'},
 });
 
 export default ForgotPasswordScreen;

@@ -15,6 +15,7 @@ import {
   BackIcon, ChevronRightIcon, NotificationIcon, ShieldIcon,
   InfoIcon, ChatIcon, TrackIcon,
 } from '../components/Icons';
+import {s, vs, fs} from '../utils/scale';
 
 const SettingsScreen = ({navigation, onLogout, isLoggedIn}) => {
   const {theme, isDark, toggleTheme} = useTheme();
@@ -229,9 +230,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingHorizontal: 18, paddingVertical: 16, borderBottomWidth: 1,
   },
-  headerTitle: {fontSize: 20, fontWeight: 'bold'},
+  headerTitle: {fontSize: fs(20), fontWeight: 'bold'},
   sectionTitle: {
-    fontSize: 12, fontWeight: '700', letterSpacing: 0.8,
+    fontSize: fs(12), fontWeight: '700', letterSpacing: 0.8,
     paddingHorizontal: 20, paddingTop: 20, paddingBottom: 8,
     textTransform: 'uppercase',
   },
@@ -246,8 +247,8 @@ const styles = StyleSheet.create({
     alignItems: 'center', justifyContent: 'center', marginRight: 14,
   },
   rowText: {flex: 1},
-  rowLabel: {fontSize: 15, fontWeight: '600', marginBottom: 2},
-  rowSublabel: {fontSize: 12, lineHeight: 16},
+  rowLabel: {fontSize: fs(15), fontWeight: '600', marginBottom: 2},
+  rowSublabel: {fontSize: fs(12), lineHeight: fs(16)},
   langToggle: {
     flexDirection: 'row',
     borderRadius: 8,
@@ -261,7 +262,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
   },
   langOptionActive: {backgroundColor: '#FF0000'},
-  langOptionText: {fontSize: 13, fontWeight: 'bold', color: '#FF0000'},
+  langOptionText: {fontSize: fs(13), fontWeight: 'bold', color: '#FF0000'},
   langOptionTextActive: {color: '#fff'},
 });
 

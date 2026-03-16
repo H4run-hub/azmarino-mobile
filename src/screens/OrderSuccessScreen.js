@@ -6,6 +6,7 @@ import {
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {useTheme} from '../context/ThemeContext';
 import {useLanguage} from '../context/LanguageContext';
+import {s, vs, fs} from '../utils/scale';
 
 const OrderSuccessScreen = ({navigation, route}) => {
   const {theme, isDark} = useTheme();
@@ -108,26 +109,26 @@ const styles = StyleSheet.create({
     alignItems: 'center', justifyContent: 'center',
     shadowColor: '#27ae60', shadowOffset: {width: 0, height: 6}, shadowOpacity: 0.5, shadowRadius: 12, elevation: 10,
   },
-  checkmarkText: {color: '#fff', fontSize: 46, fontWeight: 'bold', lineHeight: 52},
-  successTitle: {fontSize: 28, fontWeight: 'bold', marginBottom: 10, textAlign: 'center'},
-  successSubtitle: {fontSize: 16, lineHeight: 26, textAlign: 'center', marginBottom: 32},
+  checkmarkText: {color: '#fff', fontSize: fs(46), fontWeight: 'bold', lineHeight: fs(52)},
+  successTitle: {fontSize: fs(28), fontWeight: 'bold', marginBottom: 10, textAlign: 'center'},
+  successSubtitle: {fontSize: fs(16), lineHeight: fs(26), textAlign: 'center', marginBottom: 32},
   detailsCard: {
     width: '100%', maxWidth: 480, borderRadius: 16, padding: 20, marginBottom: 20,
     shadowColor: '#000', shadowOffset: {width: 0, height: 3}, shadowOpacity: 0.08, shadowRadius: 8, elevation: 4,
   },
   detailRow: {flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 12},
   separator: {height: 1},
-  detailLabel: {fontSize: 14},
-  detailValue: {fontSize: 15, fontWeight: '700'},
-  detailValueBig: {fontSize: 22, fontWeight: 'bold'},
+  detailLabel: {fontSize: fs(14)},
+  detailValue: {fontSize: fs(15), fontWeight: '700'},
+  detailValueBig: {fontSize: fs(22), fontWeight: 'bold'},
   tipBox: {width: '100%', maxWidth: 480, padding: 16, borderRadius: 12, borderWidth: 1, marginBottom: 24},
-  tipText: {fontSize: 13, lineHeight: 22},
+  tipText: {fontSize: fs(13), lineHeight: fs(22)},
   trackButton: {width: '100%', maxWidth: 480, backgroundColor: '#FF0000', padding: 18, borderRadius: 12, alignItems: 'center', marginBottom: 12},
-  trackButtonText: {color: '#fff', fontSize: 17, fontWeight: 'bold'},
+  trackButtonText: {color: '#fff', fontSize: fs(17), fontWeight: 'bold'},
   ordersButton: {width: '100%', maxWidth: 480, backgroundColor: '#2980b9', padding: 16, borderRadius: 12, alignItems: 'center', marginBottom: 12},
-  ordersButtonText: {color: '#fff', fontSize: 16, fontWeight: 'bold'},
+  ordersButtonText: {color: '#fff', fontSize: fs(16), fontWeight: 'bold'},
   homeButton: {width: '100%', maxWidth: 480, borderWidth: 1.5, padding: 16, borderRadius: 12, alignItems: 'center'},
-  homeButtonText: {fontSize: 16, fontWeight: '600'},
+  homeButtonText: {fontSize: fs(16), fontWeight: '600'},
 });
 
 export default OrderSuccessScreen;

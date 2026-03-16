@@ -1,4 +1,4 @@
-import React, {useState, useCallback} from 'react';
+import React, {useState, useCallback, useEffect, useRef} from 'react';
 import {
   View,
   Text,
@@ -20,7 +20,9 @@ import {useCart} from '../context/CartContext';
 import {useLanguage} from '../context/LanguageContext';
 import {identifyProductFromImage} from '../services/claudeVision';
 import {matchProducts} from '../services/productMatcher';
+import {getProducts} from '../services/api';
 import {BackIcon, CartIcon} from '../components/Icons';
+import {s, vs, fs} from '../utils/scale';
 
 const getNumColumns = width => {
   if (width >= 900) return 4;
@@ -46,6 +48,19 @@ const CameraSearchScreen = ({navigation}) => {
   const [isFallback, setIsFallback] = useState(false);
   const [matchedProducts, setMatchedProducts] = useState([]);
   const [error, setError] = useState(null);
+  const productsRef = useRef([]);
+
+  // Fetch products once on mount so we can match against them
+  useEffect(() => {
+    (async () => {
+      try {
+        const data = await getProducts({limit: 2500});
+        if (data?.products && Array.isArray(data.products)) {
+          productsRef.current = data.products;
+        }
+      } catch {}
+    })();
+  }, []);
 
   const numColumns = getNumColumns(width);
   const gap = 8;
@@ -63,7 +78,7 @@ const CameraSearchScreen = ({navigation}) => {
       const mime = asset.type || 'image/jpeg';
 
       const visionResult = await identifyProductFromImage(base64, mime);
-      const {results, label, isFallback: fallback} = matchProducts(visionResult);
+      const {results, label, isFallback: fallback} = matchProducts(visionResult, productsRef.current);
 
       setResultLabel(label);
       setIsFallback(fallback);
@@ -343,21 +358,21 @@ const cardStyles = StyleSheet.create({
     backgroundColor: '#FF0000', paddingHorizontal: 7,
     paddingVertical: 3, borderRadius: 5,
   },
-  discountText: {color: '#fff', fontSize: 11, fontWeight: 'bold'},
+  discountText: {color: '#fff', fontSize: fs(11), fontWeight: 'bold'},
   info: {paddingHorizontal: 7, paddingTop: 5, paddingBottom: 6},
   starRow: {flexDirection: 'row', alignItems: 'center', gap: 1, marginBottom: 3},
-  reviewCount: {fontSize: 10, marginLeft: 2},
+  reviewCount: {fontSize: fs(10), marginLeft: 2},
   priceRow: {flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 2},
   priceBlock: {flexDirection: 'row', alignItems: 'baseline', gap: 4, flexShrink: 1},
-  price: {fontSize: 17, fontWeight: 'bold', color: '#FF0000'},
-  sold: {fontSize: 10},
+  price: {fontSize: fs(17), fontWeight: 'bold', color: '#FF0000'},
+  sold: {fontSize: fs(10)},
   addBtn: {
     width: 28, height: 28, borderRadius: 14,
     backgroundColor: '#FF0000', alignItems: 'center',
     justifyContent: 'center', elevation: 4, flexShrink: 0,
   },
-  rrp: {fontSize: 10},
-  rrpStrike: {textDecorationLine: 'line-through', fontSize: 10},
+  rrp: {fontSize: fs(10)},
+  rrpStrike: {textDecorationLine: 'line-through', fontSize: fs(10)},
 });
 
 // ── Screen styles ──────────────────────────────
@@ -367,7 +382,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingHorizontal: 18, paddingVertical: 16, borderBottomWidth: 1,
   },
-  headerTitle: {fontSize: 20, fontWeight: 'bold'},
+  headerTitle: {fontSize: fs(20), fontWeight: 'bold'},
 
   // Idle
   idleContainer: {
@@ -379,14 +394,14 @@ const styles = StyleSheet.create({
     alignItems: 'center', justifyContent: 'center',
     marginBottom: 24, gap: 12,
   },
-  viewfinderText: {fontSize: 13, textAlign: 'center'},
+  viewfinderText: {fontSize: fs(13), textAlign: 'center'},
   errorBanner: {
     flexDirection: 'row', alignItems: 'center', gap: 8,
     borderWidth: 1, borderRadius: 10, padding: 12,
     marginBottom: 16, width: '100%',
   },
-  errorText: {color: '#FF0000', fontSize: 13, flex: 1},
-  tipText: {fontSize: 13, textAlign: 'center', lineHeight: 20, marginBottom: 32},
+  errorText: {color: '#FF0000', fontSize: fs(13), flex: 1},
+  tipText: {fontSize: fs(13), textAlign: 'center', lineHeight: fs(20), marginBottom: 32},
   btnRow: {flexDirection: 'row', gap: 14, width: '100%'},
   sourceBtn: {
     flex: 1, alignItems: 'center', justifyContent: 'center',
@@ -400,9 +415,9 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 6,
   },
-  sourceBtnPrimaryText: {color: '#fff', fontSize: 15, fontWeight: 'bold'},
+  sourceBtnPrimaryText: {color: '#fff', fontSize: fs(15), fontWeight: 'bold'},
   sourceBtnSecondary: {borderWidth: 1.5},
-  sourceBtnSecondaryText: {fontSize: 15, fontWeight: '600'},
+  sourceBtnSecondaryText: {fontSize: fs(15), fontWeight: '600'},
 
   // Analyzing
   analyzingContainer: {
@@ -413,8 +428,8 @@ const styles = StyleSheet.create({
     borderWidth: 2, marginBottom: 32,
   },
   analyzingBox: {alignItems: 'center', gap: 12},
-  analyzingTitle: {fontSize: 18, fontWeight: 'bold'},
-  analyzingSubtitle: {fontSize: 14, textAlign: 'center'},
+  analyzingTitle: {fontSize: fs(18), fontWeight: 'bold'},
+  analyzingSubtitle: {fontSize: fs(14), textAlign: 'center'},
 
   // Results
   resultsBanner: {
@@ -427,8 +442,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#f0f0f0',
   },
   resultsBannerText: {flex: 1},
-  identifiedLabel: {fontSize: 14, fontWeight: 'bold', marginBottom: 2},
-  resultsSublabel: {fontSize: 12},
+  identifiedLabel: {fontSize: fs(14), fontWeight: 'bold', marginBottom: 2},
+  resultsSublabel: {fontSize: fs(12)},
   rescanBtn: {
     width: 36, height: 36, borderRadius: 18,
     backgroundColor: 'rgba(255,0,0,0.1)',

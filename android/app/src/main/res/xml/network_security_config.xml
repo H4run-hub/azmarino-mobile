@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Production-safe network security config.
+  - base-config: trust only system CAs (no user CAs). User CAs would allow
+    MITM via rogue/malware/MDM-installed certs (OWASP MASTG-TEST-0286).
+  - domain-config: cleartext only for emulator/local dev (10.0.2.2, localhost).
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">10.0.2.2</domain>
+        <domain includeSubdomains="true">localhost</domain>
+        <domain includeSubdomains="true">127.0.0.1</domain>
+    </domain-config>
+</network-security-config>
