@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useCallback} from 'react';
 import {
   View,
   Text,
@@ -6,13 +6,31 @@ import {
   FlatList,
   TouchableOpacity,
   StatusBar,
+  RefreshControl,
 } from 'react-native';
+import {useFocusEffect} from '@react-navigation/native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {useTheme} from '../context/ThemeContext';
 import {useLanguage} from '../context/LanguageContext';
 import {useNotifications} from '../context/NotificationsContext';
 import {BackIcon, CloseIcon, CheckIcon} from '../components/Icons';
 import {s, vs, fs} from '../utils/scale';
+
+const timeAgo = (dateStr) => {
+  if (!dateStr) return '';
+  const now = Date.now();
+  const diff = now - new Date(dateStr).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return 'Just now';
+  if (mins < 60) return `${mins}m ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs}h ago`;
+  const days = Math.floor(hrs / 24);
+  if (days < 7) return `${days}d ago`;
+  const weeks = Math.floor(days / 7);
+  if (weeks < 5) return `${weeks}w ago`;
+  return new Date(dateStr).toLocaleDateString();
+};
 
 const TYPE_COLORS = {
   order: {bg: 'rgba(41,128,185,0.12)', border: '#2980b9', dot: '#2980b9'},
@@ -24,8 +42,22 @@ const TYPE_COLORS = {
 
 const NotificationsScreen = ({navigation}) => {
   const {theme, isDark} = useTheme();
-  const {t} = useLanguage();
-  const {notifications, markAsRead, markAllAsRead, deleteNotification, clearAll, getUnreadCount} = useNotifications();
+  const {t, language} = useLanguage();
+  const {notifications, markAsRead, markAllAsRead, deleteNotification, clearAll, getUnreadCount, fetchNotifications} = useNotifications();
+  const [refreshing, setRefreshing] = useState(false);
+
+  // Refresh on screen focus
+  useFocusEffect(
+    useCallback(() => {
+      fetchNotifications();
+    }, [fetchNotifications])
+  );
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await fetchNotifications();
+    setRefreshing(false);
+  }, [fetchNotifications]);
   const FILTER_OPTIONS = [
     {value: 'all', label: t('filterAllNotifs')},
     {value: 'order', label: t('filterOrders')},
@@ -78,13 +110,13 @@ const NotificationsScreen = ({navigation}) => {
               {color: theme.text},
               !item.read && styles.notifTitleUnread,
             ]}>
-            {item.titleKey ? t(item.titleKey) : item.title}
+            {item.titleKey ? t(item.titleKey) : (language === 'ti' && item.titleTi ? item.titleTi : item.title)}
           </Text>
           <Text style={[styles.notifBody, {color: theme.subText}]} numberOfLines={2}>
-            {item.bodyKey ? t(item.bodyKey) : item.body}
+            {item.bodyKey ? t(item.bodyKey) : (language === 'ti' && item.bodyTi ? item.bodyTi : item.body)}
           </Text>
           <Text style={[styles.notifTime, {color: theme.subText}]}>
-            {item.time || (item.timeAgo ? `${item.timeAgo.value} ${item.timeAgo.unit} ago` : '')}
+            {timeAgo(item.createdAt)}
           </Text>
         </View>
 
@@ -194,6 +226,9 @@ const NotificationsScreen = ({navigation}) => {
           keyExtractor={item => item.id}
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#FF0000']} tintColor="#FF0000" />
+          }
           ItemSeparatorComponent={() => (
             <View style={[styles.separator, {backgroundColor: theme.border}]} />
           )}

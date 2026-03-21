@@ -298,4 +298,64 @@ export const submitReview = async (productId, rating, comment) => {
   }
 };
 
+// ────────────────────────────────────────────────────────────────────────
+// NOTIFICATIONS
+// ────────────────────────────────────────────────────────────────────────
+export const getNotifications = async (type) => {
+  try {
+    const params = {};
+    if (type && type !== 'all') params.type = type;
+    const response = await api.get('/api/notifications', { params });
+    return response.data;
+  } catch (error) {
+    console.error('Get notifications failed:', error.response?.data || error.message);
+    throw error;
+  }
+};
+
+export const getUnreadCount = async () => {
+  try {
+    const response = await api.get('/api/notifications/unread-count');
+    return response.data;
+  } catch (error) {
+    return { success: false, unreadCount: 0 };
+  }
+};
+
+export const markNotificationRead = async (id) => {
+  try {
+    const response = await api.put(`/api/notifications/${id}/read`);
+    return response.data;
+  } catch (error) {
+    console.error('Mark read failed:', error.response?.data || error.message);
+  }
+};
+
+export const markAllNotificationsRead = async () => {
+  try {
+    const response = await api.put('/api/notifications/read-all');
+    return response.data;
+  } catch (error) {
+    console.error('Mark all read failed:', error.response?.data || error.message);
+  }
+};
+
+export const deleteNotificationApi = async (id) => {
+  try {
+    const response = await api.delete(`/api/notifications/${id}`);
+    return response.data;
+  } catch (error) {
+    console.error('Delete notification failed:', error.response?.data || error.message);
+  }
+};
+
+export const clearAllNotifications = async () => {
+  try {
+    const response = await api.delete('/api/notifications');
+    return response.data;
+  } catch (error) {
+    console.error('Clear notifications failed:', error.response?.data || error.message);
+  }
+};
+
 export default api;
