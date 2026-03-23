@@ -16,6 +16,7 @@ import {useTheme} from '../context/ThemeContext';
 import {useLanguage} from '../context/LanguageContext';
 import {BackIcon} from '../components/Icons';
 import {s, vs, fs} from '../utils/scale';
+import {API_BASE_URL_OVERRIDE} from '../config/apiConfig';
 
 // ─── Conversation state machine ───────────────────────────────────────────────
 let conversationState = null;
@@ -757,7 +758,7 @@ const ChatSupportScreen = ({navigation}) => {
     setChatState(null);
   }, []);
 
-  const sendMessage = (text) => {
+  const sendMessage = async (text) => {
     const msgText = (text || message).trim();
     if (!msgText) return;
 
@@ -772,24 +773,41 @@ const ChatSupportScreen = ({navigation}) => {
     setMessage('');
     setIsTyping(true);
 
-    const reply = getSmartReply(msgText, setChatState, language, navigation);
-    setChatState(conversationState);
+    const timeLabel = language === 'en' ? 'Now' : 'ሕጂ';
 
-    // Simulate human-like typing speed (varies by length)
-    const typingDelay = Math.min(2500, 800 + Math.random() * 400 + reply.length * 5);
+    try {
+      const API_URL = API_BASE_URL_OVERRIDE || 'https://api.azmarino.online';
+      const res = await fetch(`${API_URL}/api/chat`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          message: msgText,
+          language,
+          history: messages.slice(-10).map(m => ({
+            from: m.isBot ? 'sara' : 'user',
+            text: m.text,
+          })),
+        }),
+      });
 
-    setTimeout(() => {
+      const data = await res.json();
+      const reply = data?.reply || getSmartReply(msgText, setChatState, language, navigation);
+
       setIsTyping(false);
       setMessages(prev => [
         ...prev,
-        {
-          id: msgId.current++,
-          text: reply,
-          isBot: true,
-          time: language === 'en' ? 'Now' : 'ሕጂ',
-        },
+        {id: msgId.current++, text: reply, isBot: true, time: timeLabel},
       ]);
-    }, typingDelay);
+    } catch {
+      // Fallback to local pattern matching if backend is unreachable
+      const reply = getSmartReply(msgText, setChatState, language, navigation);
+      setChatState(conversationState);
+      setIsTyping(false);
+      setMessages(prev => [
+        ...prev,
+        {id: msgId.current++, text: reply, isBot: true, time: timeLabel},
+      ]);
+    }
   };
 
   const quickReplies =
@@ -1074,13 +1092,18 @@ const styles = StyleSheet.create({
     maxWidth: '78%',
     paddingHorizontal: 14,
     paddingVertical: 10,
-    borderRadius: 18,
+    borderTopLeftRadius: 18,
+    borderTopRightRadius: 18,
+    borderBottomLeftRadius: 18,
+    borderBottomRightRadius: 18,
   },
   botContent: {
+    borderTopLeftRadius: 4,
     borderBottomLeftRadius: 4,
   },
   userContent: {
     backgroundColor: '#FF0000',
+    borderTopRightRadius: 4,
     borderBottomRightRadius: 4,
   },
   messageText: {fontSize: fs(15), lineHeight: fs(22), marginBottom: 4},

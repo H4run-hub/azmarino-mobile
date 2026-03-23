@@ -4,6 +4,11 @@
 
 // Backend URL. Set to e.g. 'http://10.0.2.2:5000' to use a local server from Android emulator.
 // Leave null to use production: https://api.azmarino.online
+// Backend URL override. Set to a local URL for development:
+// Android emulator:    'http://10.0.2.2:5000'
+// Physical device:     'http://YOUR_PC_IP:5000'
+// iOS simulator:       'http://localhost:5000'
+// Production:          null  (uses https://api.azmarino.online)
 export const API_BASE_URL_OVERRIDE = null;
 
 // ── Stripe ────────────────────────────────────────────────────────────────────
