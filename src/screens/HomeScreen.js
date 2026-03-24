@@ -102,7 +102,7 @@ const getNumColumns = width => {
 };
 
 // Ticker: Car enters, stops when fully shown, holds 3 sec, exits. 1 sec gap. 3 messages flip (3 sec each), then car.
-const TICKER_ROW_HEIGHT = 28;
+const TICKER_ROW_HEIGHT = 32;
 const SLIDE_DURATION = 320;
 const CAR_ENTER_DURATION = 6000; // car drives in until fully shown
 const CAR_HOLD_DURATION = 3000; // car + text stay visible 3 sec
@@ -228,7 +228,7 @@ const TickerStrip = ({messages}) => {
 
 const tickerStyles = StyleSheet.create({
   wrap: {
-    height: TICKER_ROW_HEIGHT,
+    minHeight: TICKER_ROW_HEIGHT,
     backgroundColor: '#FF0000',
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(0,0,0,0.12)',
@@ -237,7 +237,7 @@ const tickerStyles = StyleSheet.create({
     position: 'relative',
   },
   clip: {
-    height: TICKER_ROW_HEIGHT,
+    minHeight: TICKER_ROW_HEIGHT,
     overflow: 'hidden',
     justifyContent: 'center',
   },
@@ -246,28 +246,28 @@ const tickerStyles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 8,
-    height: TICKER_ROW_HEIGHT,
+    minHeight: TICKER_ROW_HEIGHT,
   },
   textEn: {
     flex: 1,
-    fontSize: fs(10),
+    fontSize: fs(11),
     fontWeight: '700',
     color: '#ffffff',
-    lineHeight: fs(16),
+    lineHeight: fs(18),
     textAlign: 'right',
   },
   textSep: {
-    fontSize: fs(9),
+    fontSize: fs(10),
     color: 'rgba(255,255,255,0.9)',
     marginHorizontal: 3,
-    lineHeight: fs(16),
+    lineHeight: fs(18),
   },
   textTi: {
     flex: 1,
-    fontSize: fs(10),
+    fontSize: fs(11),
     fontWeight: '600',
     color: '#ffffff',
-    lineHeight: fs(16),
+    lineHeight: fs(18),
     textAlign: 'left',
   },
   carWrap: {
@@ -967,19 +967,19 @@ const styles = StyleSheet.create({
   },
   badge: {
     position: 'absolute',
-    top: 0,
-    right: 0,
+    top: -2,
+    right: -2,
     backgroundColor: '#FF0000',
-    borderRadius: 8,
-    minWidth: 16,
-    height: 16,
+    borderRadius: 10,
+    minWidth: 20,
+    minHeight: 20,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 3,
+    paddingHorizontal: 4,
     borderWidth: 1.5,
     borderColor: '#fff',
   },
-  badgeText: {color: '#fff', fontSize: fs(9), fontWeight: 'bold'},
+  badgeText: {color: '#fff', fontSize: fs(10), fontWeight: 'bold'},
   networkBanner: {
     marginHorizontal: 12,
     marginTop: 8,

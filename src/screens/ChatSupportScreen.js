@@ -747,8 +747,12 @@ const ChatSupportScreen = ({navigation}) => {
     });
   }, [language]);
 
+  // Auto-scroll to bottom with slight delay so layout has time to measure
   useEffect(() => {
-    scrollViewRef.current?.scrollToEnd({animated: true});
+    const timer = setTimeout(() => {
+      scrollViewRef.current?.scrollToEnd({animated: true});
+    }, 100);
+    return () => clearTimeout(timer);
   }, [messages, isTyping]);
 
   // Reset module-level state when screen mounts
@@ -955,19 +959,21 @@ const ChatSupportScreen = ({navigation}) => {
           )}
         </ScrollView>
 
-        {/* Quick replies */}
-        <View style={[styles.quickBar, {backgroundColor: theme.cardBg, borderTopColor: theme.border}]}>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{paddingHorizontal: 12, gap: 8}}>
-            {quickReplies.map((q, i) => (
-              <TouchableOpacity
-                key={i}
-                style={[styles.quickBtn, {borderColor: theme.border}]}
-                onPress={() => sendMessage(q.msg)}>
-                <Text style={[styles.quickBtnText, {color: theme.text}]}>{q.label}</Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-        </View>
+        {/* Quick replies — only show before conversation starts */}
+        {messages.length <= 1 && (
+          <View style={[styles.quickBar, {backgroundColor: theme.cardBg, borderTopColor: theme.border}]}>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{paddingHorizontal: 12, gap: 8}}>
+              {quickReplies.map((q, i) => (
+                <TouchableOpacity
+                  key={i}
+                  style={[styles.quickBtn, {borderColor: theme.border}]}
+                  onPress={() => sendMessage(q.msg)}>
+                  <Text style={[styles.quickBtnText, {color: theme.text}]}>{q.label}</Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        )}
 
         {/* Input bar */}
         <View

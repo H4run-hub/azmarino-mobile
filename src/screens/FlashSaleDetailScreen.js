@@ -971,14 +971,14 @@ const styles = StyleSheet.create({
   selectionError: {color: '#FF0000', fontSize: fs(12), fontWeight: '600', marginTop: 6},
   quantityRow: {flexDirection: 'row', alignItems: 'center'},
   qtyBtn: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
+    minWidth: 38,
+    minHeight: 38,
+    borderRadius: 19,
     backgroundColor: '#FF0000',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  qtyBtnText: {color: '#fff', fontSize: fs(18), fontWeight: 'bold', lineHeight: fs(22)},
+  qtyBtnText: {color: '#fff', fontSize: fs(18), fontWeight: 'bold'},
   qtyValue: {
     fontSize: fs(16),
     fontWeight: 'bold',

@@ -34,7 +34,10 @@ const LoginScreen = ({navigation, onLogin}) => {
   const [loading, setLoading] = useState(false);
   const [apiError, setApiError] = useState('');
 
-  const handleBack = () => navigation.resetStack('Home');
+  const handleBack = () => {
+    if (navigation.canGoBack()) navigation.goBack();
+    else navigation.resetStack('Home');
+  };
 
   const validate = () => {
     let valid = true;

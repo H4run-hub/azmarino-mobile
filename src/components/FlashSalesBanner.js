@@ -178,7 +178,7 @@ const styles = StyleSheet.create({
   },
   discountText: {
     color: '#ffffff',
-    fontSize: 11,
+    fontSize: fs(11),
     fontWeight: 'bold',
   },
   productImage: {
@@ -189,10 +189,10 @@ const styles = StyleSheet.create({
     padding: 10,
   },
   productName: {
-    fontSize: 12,
+    fontSize: fs(12),
     fontWeight: '600',
     marginBottom: 6,
-    lineHeight: 18,
+    lineHeight: fs(18),
   },
   priceRow: {
     flexDirection: 'row',
@@ -200,12 +200,12 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   price: {
-    fontSize: 16,
+    fontSize: fs(16),
     fontWeight: 'bold',
     color: '#FF0000',
   },
   originalPrice: {
-    fontSize: 11,
+    fontSize: fs(11),
     color: '#999999',
     textDecorationLine: 'line-through',
   },
