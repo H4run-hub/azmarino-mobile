@@ -1282,6 +1282,9 @@ const translations = {
     consentAccept: 'I Agree',
     consentDecline: 'Later',
   },
+  ar: {},
+  am: {},
+  te: {},
 };
 
 export default translations;
