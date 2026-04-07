@@ -24,12 +24,17 @@ export const LanguageProvider = ({children}) => {
       return next;
     });
 
+  const setLang = (lang) => {
+    setLanguage(lang);
+    AsyncStorage.setItem('azmarino_language', lang);
+  };
+
   const t = key => translations[language]?.[key] ?? translations['ti']?.[key] ?? key;
 
   if (!loaded) return null;
 
   return (
-    <LanguageContext.Provider value={{language, toggleLanguage, t}}>
+    <LanguageContext.Provider value={{language, toggleLanguage, setLang, t}}>
       {children}
     </LanguageContext.Provider>
   );

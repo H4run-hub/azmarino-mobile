@@ -27,7 +27,7 @@ export const NotificationsProvider = ({children}) => {
   // Fetch notifications from backend
   const fetchNotifications = useCallback(async () => {
     try {
-      const token = await AsyncStorage.getItem('userToken');
+      const token = await AsyncStorage.getItem('azmarino_token');
       if (!token) {
         setNotifications([]);
         return;

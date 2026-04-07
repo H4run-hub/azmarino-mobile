@@ -63,7 +63,7 @@ const CheckoutScreen = ({navigation, user}) => {
       const shippingCost = subtotal <= 50 ? 5.99 : 0;
       const totalAmount = subtotal + shippingCost;
 
-      const orderEmail = user?.email || `guest-${Date.now()}@azmarino.online`;
+      const orderEmail = user?.email;
       const shippingInfo = {
         fullName: fullName.trim(),
         phone: phone.trim(),

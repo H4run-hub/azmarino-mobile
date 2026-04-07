@@ -10,13 +10,13 @@ import {useLanguage} from '../context/LanguageContext';
 import {BackIcon} from '../components/Icons';
 import Icon from 'react-native-vector-icons/Ionicons';
 import {registerUser} from '../services/api';
+import {lightTap, successTap} from '../utils/haptics';
 import {s, vs, fs} from '../utils/scale';
 
 const RegisterScreen = ({navigation, onLogin}) => {
   const {theme, isDark} = useTheme();
   const {t} = useLanguage();
   const {width} = useWindowDimensions();
-  const isTablet = width >= 600;
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -27,141 +27,114 @@ const RegisterScreen = ({navigation, onLogin}) => {
   const [loading, setLoading] = useState(false);
   const [apiError, setApiError] = useState('');
 
-  const handleBack = () => {
-    if (navigation.canGoBack()) navigation.goBack();
-    else navigation.resetStack('Home');
-  };
-
   const validate = () => {
     const e = {};
     if (!name.trim()) e.name = t('errName');
     if (!email.trim()) e.email = t('errEmail');
     else if (!/\S+@\S+\.\S+/.test(email)) e.email = t('errEmailInvalid');
     if (!phone.trim()) e.phone = t('errPhoneRequired');
-    else if (phone.replace(/\D/g, '').length < 8) e.phone = t('errPhoneTooShort');
     if (!password) e.password = t('errPasswordRequired');
     else if (password.length < 6) e.password = t('errPasswordTooShort');
-    if (!confirmPassword) e.confirmPassword = t('errConfirmPassword');
-    else if (password !== confirmPassword) e.confirmPassword = t('errPasswordMismatch');
+    if (password !== confirmPassword) e.confirmPassword = t('errPasswordMismatch');
     setErrors(e);
     return Object.keys(e).length === 0;
   };
 
   const handleRegister = async () => {
-    if (!validate()) return;
+    if (!validate()) { lightTap(); return; }
     setLoading(true);
     setApiError('');
     try {
       const data = await registerUser(name.trim(), email.trim(), phone.trim(), password);
-      // API returns { token, user } on success — navigate to email verification
       if (data?.user) {
+        successTap();
         navigation.navigate('EmailVerification', {user: data.user});
       } else {
         setApiError(data?.message || 'Registration failed');
       }
     } catch (err) {
-      const msg = err.response?.data?.message || 'ምስ ሰርቨር ምትሕሓዝ ኣይተኻእለን';
-      setApiError(msg);
+      setApiError(err.response?.data?.message || 'Network error');
     } finally {
       setLoading(false);
     }
   };
 
-  const field = (key, placeholder, value, onChange, opts = {}) => (
-    <>
+  const inputStyle = {
+    backgroundColor: theme.cardBg,
+    color: theme.text,
+    borderColor: theme.border,
+    borderRadius: 16,
+    padding: 16,
+    fontSize: fs(16),
+    borderWidth: 1.5,
+    marginBottom: 4,
+  };
+
+  const field = (key, label, placeholder, value, onChange, opts = {}) => (
+    <View style={styles.inputGroup}>
+      <Text style={[styles.label, {color: theme.text}]}>{label}</Text>
       <TextInput
-        style={[styles.input, {backgroundColor: theme.cardBg, color: theme.text, borderColor: errors[key] ? '#FF0000' : theme.border}]}
+        style={[inputStyle, errors[key] ? {borderColor: '#E60000'} : null]}
         placeholder={placeholder}
+        placeholderTextColor={theme.subText}
         value={value}
         onChangeText={v => {onChange(v); setErrors(prev => ({...prev, [key]: ''}));}}
-        placeholderTextColor={theme.subText}
+        editable={!loading}
         {...opts}
       />
       {errors[key] ? <Text style={styles.fieldError}>{errors[key]}</Text> : null}
-    </>
+    </View>
   );
 
   return (
     <SafeAreaView style={[styles.container, {backgroundColor: theme.bg}]} edges={['top']}>
-      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={theme.bg} translucent={false} />
+      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
       <KeyboardAvoidingView style={{flex: 1}} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-
-        <View style={[styles.header, {backgroundColor: theme.cardBg, borderBottomColor: theme.border}]}>
-          <TouchableOpacity onPress={handleBack} hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}>
-            <BackIcon size={28} color={theme.text} />
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+            <BackIcon size={24} color={theme.text} />
           </TouchableOpacity>
-          <Text style={[styles.headerTitle, {color: theme.text}]}>{t('registerTitle')}</Text>
-          <View style={{width: 40}} />
         </View>
 
-        <ScrollView
-          contentContainerStyle={[styles.scrollContent, isTablet && styles.scrollContentTablet]}
-          keyboardShouldPersistTaps="handled">
-
-          <View style={[styles.formCard, isTablet && styles.formCardTablet, {backgroundColor: isTablet ? theme.cardBg : 'transparent'}]}>
-
-            <View style={styles.logoSection}>
-              <Text style={styles.appName}>{t('appName')}</Text>
-              <Text style={[styles.welcomeText, {color: theme.subText}]}>{t('createAccount')}</Text>
+        <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+          <View style={styles.content}>
+            <View style={styles.welcomeSection}>
+              <View style={[styles.logoBadge, {backgroundColor: '#E60000'}]}>
+                <Text style={styles.logoText}>A</Text>
+              </View>
+              <h1 style={{fontSize: fs(28), fontWeight: '900', color: theme.text, marginTop: 24, marginBottom: 8}}>
+                {t('registerTitle') || 'Create Account'}
+              </h1>
+              <Text style={{fontSize: fs(16), color: theme.subText, fontWeight: '600'}}>
+                {t('registerSub') || 'Join the Azmarino family'}
+              </Text>
             </View>
+
+            {apiError ? (
+              <View style={[styles.errorBox, {backgroundColor: 'rgba(230, 0, 0, 0.05)', borderColor: 'rgba(230, 0, 0, 0.1)'}]}>
+                <Text style={styles.errorText}>{apiError}</Text>
+              </View>
+            ) : null}
 
             <View style={styles.form}>
-              {apiError ? (
-                <View style={styles.apiErrorBox}>
-                  <Text style={styles.apiErrorText}>{apiError}</Text>
-                </View>
-              ) : null}
-
-              {field('name', t('fullNamePlaceholder'), name, setName, {editable: !loading})}
-              {field('email', t('emailPlaceholder'), email, setEmail, {keyboardType: 'email-address', autoCapitalize: 'none', editable: !loading})}
-              {field('phone', t('phonePlaceholder'), phone, setPhone, {keyboardType: 'phone-pad', editable: !loading})}
-              {field('password', t('passwordPlaceholder'), password, setPassword, {secureTextEntry: true, editable: !loading})}
-              {field('confirmPassword', t('confirmPasswordPlaceholder'), confirmPassword, setConfirmPassword, {secureTextEntry: true, editable: !loading})}
+              {field('name', t('fullNameLabel') || 'Full Name', 'John Doe', name, setName)}
+              {field('email', t('emailLabel') || 'Email Address', 'name@example.com', email, setEmail, {keyboardType: 'email-address', autoCapitalize: 'none'})}
+              {field('phone', t('phoneLabel') || 'Phone Number', '+291...', phone, setPhone, {keyboardType: 'phone-pad'})}
+              {field('password', t('passwordLabel') || 'Password', '••••••••', password, setPassword, {secureTextEntry: true})}
+              {field('confirmPassword', t('confirmPasswordLabel') || 'Confirm Password', '••••••••', confirmPassword, setConfirmPassword, {secureTextEntry: true})}
 
               <TouchableOpacity
-                style={[styles.registerButton, loading && {backgroundColor: '#ccc'}]}
+                style={[styles.mainBtn, loading && {opacity: 0.7}]}
                 onPress={handleRegister}
                 disabled={loading}>
-                {loading
-                  ? <ActivityIndicator color="#fff" />
-                  : <Text style={styles.registerButtonText}>{t('registerBtn')}</Text>}
-              </TouchableOpacity>
-
-              <View style={styles.divider}>
-                <View style={[styles.dividerLine, {backgroundColor: theme.border}]} />
-                <Text style={[styles.dividerText, {color: theme.subText}]}>{t('or')}</Text>
-                <View style={[styles.dividerLine, {backgroundColor: theme.border}]} />
-              </View>
-
-              <TouchableOpacity
-                style={[styles.socialButton, {backgroundColor: theme.cardBg, borderColor: theme.border}]}
-                onPress={() => Alert.alert(t('comingSoonTitle'), t('comingSoonSub'))}>
-                <View style={styles.socialButtonInner}>
-                  <Icon name="logo-google" size={20} color="#DB4437" />
-                  <Text style={[styles.socialButtonText, {color: theme.text}]}>{t('registerGoogle')}</Text>
-                </View>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.socialButton, {backgroundColor: '#1877F2', borderColor: '#1877F2'}]}
-                onPress={() => Alert.alert(t('comingSoonTitle'), t('comingSoonSub'))}>
-                <View style={styles.socialButtonInner}>
-                  <Icon name="logo-facebook" size={20} color="#fff" />
-                  <Text style={[styles.socialButtonText, {color: '#fff'}]}>{t('registerFacebook')}</Text>
-                </View>
+                {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.mainBtnText}>{t('registerBtn') || 'Sign Up'}</Text>}
               </TouchableOpacity>
             </View>
 
-            <TouchableOpacity style={styles.aboutButton} onPress={() => navigation.navigate('AboutUs')}>
-              <Text style={[styles.aboutButtonText, {color: theme.subText}]}>{t('aboutUs')}</Text>
-            </TouchableOpacity>
-
             <View style={styles.footer}>
-              <Text style={[styles.footerText, {color: theme.subText}]}>{t('hasAccount')}</Text>
-              <TouchableOpacity onPress={() => {
-                if (navigation.canGoBack()) navigation.goBack();
-                else navigation.navigate('Login');
-              }}>
-                <Text style={styles.loginLink}>{t('loginLink')}</Text>
+              <Text style={{color: theme.subText, fontSize: fs(15), fontWeight: '600'}}>{t('alreadyHaveAccount')}</Text>
+              <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+                <Text style={{color: '#E60000', fontSize: fs(15), fontWeight: '800', marginLeft: 8}}>{t('loginLink')}</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -173,45 +146,23 @@ const RegisterScreen = ({navigation, onLogin}) => {
 };
 
 const styles = StyleSheet.create({
-  container: {flex: 1},
-  header: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingHorizontal: 18, paddingVertical: 16, borderBottomWidth: 1,
-  },
-  headerTitle: {fontSize: fs(20), fontWeight: 'bold'},
-  scrollContent: {flexGrow: 1, padding: 20},
-  scrollContentTablet: {alignItems: 'center', paddingVertical: 40},
-  formCard: {width: '100%'},
-  formCardTablet: {
-    maxWidth: 500, borderRadius: 20, padding: 32,
-    shadowColor: '#000', shadowOffset: {width: 0, height: 4},
-    shadowOpacity: 0.1, shadowRadius: 12, elevation: 6,
-  },
-  logoSection: {alignItems: 'center', marginTop: 16, marginBottom: 28, width: '100%', paddingHorizontal: 20},
-  logo: {width: 80, height: 80, marginBottom: 10},
-  appName: {fontSize: fs(28), fontWeight: 'bold', color: '#FF0000', marginBottom: 8},
-  welcomeText: {fontSize: fs(15), textAlign: 'center'},
-  form: {marginBottom: 16},
-  input: {borderRadius: 12, padding: 16, fontSize: fs(16), marginBottom: 4, borderWidth: 1},
-  fieldError: {color: '#FF0000', fontSize: fs(12), marginBottom: 10, marginLeft: 4},
-  registerButton: {
-    backgroundColor: '#FF0000', padding: 18, borderRadius: 12,
-    alignItems: 'center', marginTop: 8, marginBottom: 20,
-  },
-  registerButtonText: {color: '#fff', fontSize: fs(18), fontWeight: 'bold'},
-  divider: {flexDirection: 'row', alignItems: 'center', marginVertical: 16},
-  dividerLine: {flex: 1, height: 1},
-  dividerText: {marginHorizontal: 15, fontSize: fs(14)},
-  socialButton: {padding: 16, borderRadius: 12, alignItems: 'center', marginBottom: 12, borderWidth: 1},
-  socialButtonInner: {flexDirection: 'row', alignItems: 'center', gap: 10},
-  socialButtonText: {fontSize: fs(16), fontWeight: '600'},
-  aboutButton: {marginTop: 12, marginBottom: 8, alignItems: 'center'},
-  aboutButtonText: {fontSize: fs(14), textDecorationLine: 'underline'},
-  footer: {flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginTop: 16},
-  footerText: {fontSize: fs(15)},
-  loginLink: {fontSize: fs(15), color: '#FF0000', fontWeight: 'bold'},
-  apiErrorBox: {backgroundColor: '#fff5f5', borderWidth: 1, borderColor: '#FF0000', borderRadius: 8, padding: 12, marginBottom: 12},
-  apiErrorText: {color: '#FF0000', fontSize: fs(14), textAlign: 'center', fontWeight: '600'},
+  container: { flex: 1 },
+  header: { paddingHorizontal: 16, height: 50, justifyContent: 'center' },
+  backBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
+  scroll: { flexGrow: 1 },
+  content: { padding: 24 },
+  welcomeSection: { alignItems: 'center', marginBottom: 40, marginTop: 10 },
+  logoBadge: { width: 64, height: 64, borderRadius: 20, alignItems: 'center', justifyContent: 'center', shadowColor: '#E60000', shadowOffset: {width: 0, height: 8}, shadowOpacity: 0.2, shadowRadius: 12, elevation: 5 },
+  logoText: { color: '#fff', fontSize: 32, fontWeight: '900' },
+  form: { width: '100%' },
+  inputGroup: { marginBottom: 20 },
+  label: { fontSize: 13, fontWeight: '800', marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5 },
+  fieldError: { color: '#E60000', fontSize: 12, marginTop: 4, fontWeight: '600' },
+  mainBtn: { backgroundColor: '#E60000', height: 56, borderRadius: 16, alignItems: 'center', justifyContent: 'center', marginTop: 20, shadowColor: '#E60000', shadowOffset: {width: 0, height: 4}, shadowOpacity: 0.2, shadowRadius: 8, elevation: 4 },
+  mainBtnText: { color: '#fff', fontSize: 18, fontWeight: '800' },
+  footer: { flexDirection: 'row', justifyContent: 'center', marginTop: 32 },
+  errorBox: { padding: 16, borderRadius: 12, borderWidth: 1, marginBottom: 24 },
+  errorText: { color: '#E60000', fontSize: 14, textAlign: 'center', fontWeight: '700' }
 });
 
 export default RegisterScreen;

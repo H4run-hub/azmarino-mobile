@@ -78,11 +78,26 @@ const CameraSearchScreen = ({navigation}) => {
       const mime = asset.type || 'image/jpeg';
 
       const visionResult = await identifyProductFromImage(base64, mime);
-      const {results, label, isFallback: fallback} = matchProducts(visionResult, productsRef.current);
 
-      setResultLabel(label);
-      setIsFallback(fallback);
-      setMatchedProducts(results);
+      // Use CJ products from backend if available, otherwise fall back to local matching
+      if (visionResult.cjProducts && visionResult.cjProducts.length > 0) {
+        // Add unique IDs to CJ products for FlatList
+        const products = visionResult.cjProducts.map((p, i) => ({
+          ...p,
+          id: p.cjProductId || `cj-${i}`,
+          price: `€${p.price?.toFixed(2) || '0.00'}`,
+          originalPrice: `€${p.originalPrice?.toFixed(2) || '0.00'}`,
+        }));
+        setResultLabel(visionResult.identified);
+        setIsFallback(false);
+        setMatchedProducts(products);
+      } else {
+        // Fallback to local product matching
+        const {results, label, isFallback: fallback} = matchProducts(visionResult, productsRef.current);
+        setResultLabel(label);
+        setIsFallback(fallback);
+        setMatchedProducts(results);
+      }
       setPhase('results');
     } catch (err) {
       console.error('Vision error:', err);

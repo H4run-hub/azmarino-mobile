@@ -16,7 +16,7 @@ export const API_BASE_URL_OVERRIDE = null;
 // LIVE key  → starts with pk_live_  (real money charged — only use when ready!)
 // Get your keys from: https://dashboard.stripe.com/apikeys
 export const STRIPE_PUBLISHABLE_KEY =
-  'pk_test_51T0YR3Hlp6fyEyWIAI8NqnQdH6HemY3glBzTGWeLgGtgZA2SDvo3Xa2PgRF4ixm1BV4Vj5EjA7XU9WhKZLQ2tWv800J12kSjMl';
+  'pk_live_51T0YR3Hlp6fyEyWIcf8FctOiro3bZO7NXi3QSb9C45YhlcaTsMQCJWXXbWKSAM4xEfW5qCHWDuGgd7IzJW94CHBp00iIe2YRCs';
 // ─────────────────────────────────────────────────────────────────────────────
 
 // Anthropic (for camera search when not using backend proxy)

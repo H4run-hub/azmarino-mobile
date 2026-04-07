@@ -1,5 +1,13 @@
 import React, {useState, useEffect} from 'react';
-import {View, BackHandler, Platform} from 'react-native';
+import {View, BackHandler, Platform, Text, TextInput} from 'react-native';
+
+// Disable system font scaling — prevents text from overflowing/disappearing with large phone fonts
+if (Text.defaultProps == null) Text.defaultProps = {};
+Text.defaultProps.maxFontSizeMultiplier = 1;
+Text.defaultProps.allowFontScaling = false;
+if (TextInput.defaultProps == null) TextInput.defaultProps = {};
+TextInput.defaultProps.maxFontSizeMultiplier = 1;
+TextInput.defaultProps.allowFontScaling = false;
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 import {StripeProvider} from '@stripe/stripe-react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -28,27 +36,42 @@ import SettingsScreen from './src/screens/SettingsScreen';
 import FlashSaleScreen from './src/screens/FlashSaleScreen';
 import FlashSaleDetailScreen from './src/screens/FlashSaleDetailScreen';
 import OnboardingScreen from './src/screens/OnboardingScreen';
+import LanguagePickerScreen from './src/screens/LanguagePickerScreen';
 import EmailVerificationScreen from './src/screens/EmailVerificationScreen';
 import {logoutUser, getMe} from './src/services/api';
 import SwipeBackView from './src/components/SwipeBackView';
 import BottomTabBar from './src/components/BottomTabBar';
 import {STRIPE_PUBLISHABLE_KEY} from './src/config/apiConfig';
+import DataConsentModal from './src/components/DataConsentModal';
 
 function App() {
   const [stack, setStack] = useState([{name: 'Home', params: null}]);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [user, setUser] = useState<any>(null);
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [showLanguagePicker, setShowLanguagePicker] = useState(false);
   const [onboardingChecked, setOnboardingChecked] = useState(false);
   const [homeScrollKey, setHomeScrollKey] = useState(0);
+  const [authChecked, setAuthChecked] = useState(false);
+  const [showConsent, setShowConsent] = useState(false);
 
-  // Check if user has seen onboarding
+  // Check if user has chosen language and seen onboarding
   useEffect(() => {
-    AsyncStorage.getItem('azmarino_onboarded').then(val => {
-      if (!val) setShowOnboarding(true);
+    Promise.all([
+      AsyncStorage.getItem('azmarino_language_chosen'),
+      AsyncStorage.getItem('azmarino_onboarded'),
+    ]).then(([langChosen, onboarded]) => {
+      if (!langChosen) setShowLanguagePicker(true);
+      else if (!onboarded) setShowOnboarding(true);
       setOnboardingChecked(true);
     });
   }, []);
+
+  const finishLanguagePicker = () => {
+    AsyncStorage.setItem('azmarino_language_chosen', 'true');
+    setShowLanguagePicker(false);
+    setShowOnboarding(true);
+  };
 
   const finishOnboarding = () => {
     AsyncStorage.setItem('azmarino_onboarded', 'true');
@@ -65,6 +88,7 @@ function App() {
           setIsLoggedIn(true);
         } catch {}
       }
+      setAuthChecked(true);
     });
     // Refresh user from backend when we have a token (keeps profile/address in sync)
     AsyncStorage.getItem('azmarino_token').then(token => {
@@ -78,6 +102,22 @@ function App() {
       }
     });
   }, []);
+
+  // Show data consent after login if not yet accepted
+  useEffect(() => {
+    if (isLoggedIn) {
+      AsyncStorage.getItem('azmarino_data_consent').then(val => {
+        if (!val) setShowConsent(true);
+      });
+    }
+  }, [isLoggedIn]);
+
+  const handleConsent = (accepted: boolean) => {
+    if (accepted) {
+      AsyncStorage.setItem('azmarino_data_consent', 'true');
+    }
+    setShowConsent(false);
+  };
 
   const currentScreen = stack[stack.length - 1];
 
@@ -100,14 +140,14 @@ function App() {
     if (Platform.OS !== 'android') return;
     const onBack = () => {
       if (stack.length > 1) {
-        goBack();
+        setStack(prev => (prev.length > 1 ? prev.slice(0, -1) : prev));
         return true;
       }
       return false;
     };
     const sub = BackHandler.addEventListener('hardwareBackPress', onBack);
     return () => sub.remove();
-  }, [stack.length]);
+  }, [stack]);
 
   const handleLogin = (userData?: any) => {
     if (userData) setUser(userData);
@@ -135,7 +175,7 @@ function App() {
       case 'Home':
         return <HomeScreen navigation={navigation} isLoggedIn={isLoggedIn} scrollToTopKey={homeScrollKey} />;
       case 'Cart':
-        return <CartScreen navigation={navigation} />;
+        return <CartScreen navigation={navigation} isLoggedIn={isLoggedIn} />;
       case 'Notifications':
         return <NotificationsScreen navigation={navigation} />;
       case 'CameraSearch':
@@ -171,6 +211,7 @@ function App() {
       case 'OrderSuccess':
         return <OrderSuccessScreen navigation={navigation} route={{params}} />;
       case 'UserProfile':
+        if (!isLoggedIn) return <LoginScreen navigation={navigation} onLogin={handleLogin} />;
         return (
           <UserProfileScreen
             navigation={navigation}
@@ -199,10 +240,15 @@ function App() {
             <NotificationsProvider>
               <CartProvider>
                 <RecentlyViewedProvider>
-                {onboardingChecked && showOnboarding ? (
+                {onboardingChecked && showLanguagePicker ? (
+                  <LanguagePickerScreen onFinish={finishLanguagePicker} />
+                ) : onboardingChecked && showOnboarding ? (
                   <OnboardingScreen onFinish={finishOnboarding} />
+                ) : !authChecked ? (
+                  <View style={{flex: 1, backgroundColor: '#fff'}} />
                 ) : (
                   <View style={{flex: 1}}>
+                    {showConsent && <DataConsentModal onAccept={() => handleConsent(true)} onDecline={() => handleConsent(false)} />}
                     <SwipeBackView
                       onSwipeBack={goBack}
                       enabled={stack.length > 1}>
@@ -211,11 +257,11 @@ function App() {
                     <BottomTabBar
                       currentScreenName={currentScreen.name}
                       onNavigate={(name) => {
-                        if (name === 'Home' && currentScreen.name === 'Home') {
+                        if (name === 'Home') {
+                          resetStack('Home');
                           setHomeScrollKey(k => k + 1);
                         } else {
-                          resetStack(name);
-                          if (name === 'Home') setHomeScrollKey(k => k + 1);
+                          setStack([{name: 'Home', params: null}, {name, params: null}]);
                         }
                       }}
                     />

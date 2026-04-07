@@ -24,8 +24,8 @@ const TopBar = ({
   return (
     <View style={[styles.bar, { backgroundColor: theme.cardBg, borderBottomColor: theme.border }]}>
       {leftSlot != null ? <View style={styles.leftSlot}>{leftSlot}</View> : null}
-      <View style={[styles.searchBar, { backgroundColor: isDark ? theme.bg : '#f5f5f5', borderColor: theme.border }]}>
-        <SearchIcon size={18} color={theme.subText} />
+      <View style={[styles.searchBar, { backgroundColor: isDark ? theme.bg : '#F3F4F6', borderColor: theme.border }]}>
+        <SearchIcon size={20} color={theme.subText} />
         <TextInput
           style={[styles.searchInput, { color: theme.text }]}
           placeholder={placeholder}
@@ -41,15 +41,15 @@ const TopBar = ({
       <View style={styles.rightIcons}>
         <TouchableOpacity
           onPress={toggleTheme}
-          style={[styles.iconBtn, { backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)' }]}>
-          {isDark ? <SunIcon size={20} /> : <MoonIcon size={20} />}
+          style={[styles.iconBtn, { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)' }]}>
+          {isDark ? <SunIcon size={22} color="#FFB800" /> : <MoonIcon size={22} color="#4B5563" />}
         </TouchableOpacity>
         <TouchableOpacity
           onPress={onNotificationPress}
-          style={[styles.iconBtn, { backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)' }]}>
-          <BellIcon size={20} color="#FF0000" />
+          style={[styles.iconBtn, { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)' }]}>
+          <BellIcon size={22} color="#E60000" />
           {notificationCount > 0 && (
-            <View style={styles.badge}>
+            <View style={[styles.badge, {borderColor: theme.cardBg}]}>
               <Text style={styles.badgeText}>{notificationCount > 9 ? '9+' : notificationCount}</Text>
             </View>
           )}
@@ -59,19 +59,19 @@ const TopBar = ({
   );
 };
 
-const BTN_SIZE = 36;
+const BTN_SIZE = 40;
 
 const styles = StyleSheet.create({
   bar: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 8,
-    paddingVertical: 5,
-    gap: 5,
-    borderBottomWidth: 1,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    gap: 8,
+    borderBottomWidth: 0.5,
   },
   leftSlot: {
-    marginRight: 0,
+    marginRight: 4,
   },
   searchBar: {
     flex: 1,
@@ -79,25 +79,25 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     height: BTN_SIZE,
     minHeight: BTN_SIZE,
-    borderRadius: BTN_SIZE / 2,
-    paddingHorizontal: 10,
+    borderRadius: 12,
+    paddingHorizontal: 12,
     borderWidth: 1,
-    gap: 6,
+    gap: 10,
   },
   searchInput: {
     flex: 1,
-    fontSize: fs(13),
-    fontWeight: '400',
+    fontSize: fs(14),
+    fontWeight: '500',
     padding: 0,
   },
   rightIcons: {
     flexDirection: 'row',
-    gap: 4,
+    gap: 6,
   },
   iconBtn: {
     width: BTN_SIZE,
     height: BTN_SIZE,
-    borderRadius: BTN_SIZE / 2,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -105,20 +105,19 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: -2,
     right: -2,
-    backgroundColor: '#FF0000',
+    backgroundColor: '#E60000',
     borderRadius: 10,
-    minWidth: 20,
-    minHeight: 20,
+    minWidth: 18,
+    minHeight: 18,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 4,
-    borderWidth: 1.5,
-    borderColor: '#fff',
+    borderWidth: 2,
   },
   badgeText: {
     color: '#fff',
-    fontSize: fs(10),
-    fontWeight: 'bold',
+    fontSize: fs(9),
+    fontWeight: '800',
   },
 });
 

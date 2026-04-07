@@ -8,7 +8,6 @@ import {
   StatusBar,
   RefreshControl,
 } from 'react-native';
-import {useFocusEffect} from '@react-navigation/native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {useTheme} from '../context/ThemeContext';
 import {useLanguage} from '../context/LanguageContext';
@@ -46,12 +45,8 @@ const NotificationsScreen = ({navigation}) => {
   const {notifications, markAsRead, markAllAsRead, deleteNotification, clearAll, getUnreadCount, fetchNotifications} = useNotifications();
   const [refreshing, setRefreshing] = useState(false);
 
-  // Refresh on screen focus
-  useFocusEffect(
-    useCallback(() => {
-      fetchNotifications();
-    }, [fetchNotifications])
-  );
+  // Refresh on mount
+  React.useEffect(() => { fetchNotifications(); }, [fetchNotifications]);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);

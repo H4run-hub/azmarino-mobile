@@ -13,7 +13,7 @@ const TAB_HEIGHT = 56;
  * Tapping a tab navigates directly to that screen (replaces stack) so users don't have to go back one by one.
  */
 const BottomTabBar = ({ currentScreenName, onNavigate }) => {
-  const { theme } = useTheme();
+  const { theme, isDark } = useTheme();
   const insets = useSafeAreaInsets();
   const { cartItems } = useCart();
 
@@ -23,14 +23,15 @@ const BottomTabBar = ({ currentScreenName, onNavigate }) => {
     { key: 'UserProfile', icon: UserIcon },
   ];
 
-  const bottomPadding = Math.max(insets.bottom, 8);
+  // Modern safe area handling for iOS (Home Indicator)
+  const bottomPadding = Math.max(insets.bottom, 12);
 
   return (
     <View
       style={[
         styles.container,
         {
-          backgroundColor: theme.cardBg,
+          backgroundColor: theme.glassBg,
           borderTopColor: theme.border,
           paddingBottom: bottomPadding,
           height: TAB_HEIGHT + bottomPadding,
@@ -42,15 +43,21 @@ const BottomTabBar = ({ currentScreenName, onNavigate }) => {
           <TouchableOpacity
             key={key}
             style={styles.tab}
-            onPress={() => onNavigate(key)}
+            onPress={() => {
+              lightTap();
+              onNavigate(key);
+            }}
             activeOpacity={0.7}>
             <View style={styles.iconWrap}>
               <Icon
-                size={24}
-                color={isActive ? '#FF0000' : theme.subText}
+                size={26}
+                color={isActive ? '#E60000' : theme.subText}
               />
+              {isActive && (
+                <View style={[styles.activeIndicator, {backgroundColor: '#E60000'}]} />
+              )}
               {badge > 0 && key === 'Cart' && (
-                <View style={styles.badge}>
+                <View style={[styles.badge, {borderColor: theme.cardBg}]}>
                   <Text style={styles.badgeText}>{badge > 9 ? '9+' : badge}</Text>
                 </View>
               )}
@@ -67,40 +74,52 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-start',
     justifyContent: 'space-around',
-    paddingTop: 4,
-    borderTopWidth: 1,
-    elevation: 8,
+    paddingTop: 8,
+    borderTopWidth: 0.5,
+    // iOS shadow for the bar itself
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: -2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    shadowOffset: {width: 0, height: -4},
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 10,
   },
   tab: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
+    height: TAB_HEIGHT,
   },
   iconWrap: {
     position: 'relative',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 44,
+    height: 44,
+  },
+  activeIndicator: {
+    position: 'absolute',
+    bottom: -8,
+    width: 4,
+    height: 4,
+    borderRadius: 2,
   },
   badge: {
     position: 'absolute',
-    top: -4,
-    right: -10,
-    backgroundColor: '#FF0000',
+    top: 2,
+    right: -2,
+    backgroundColor: '#E60000',
     borderRadius: 10,
-    minWidth: 20,
-    minHeight: 20,
+    minWidth: 18,
+    minHeight: 18,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 4,
-    borderWidth: 1.5,
-    borderColor: '#fff',
+    borderWidth: 2,
   },
   badgeText: {
     color: '#fff',
-    fontSize: fs(10),
-    fontWeight: 'bold',
+    fontSize: fs(9),
+    fontWeight: '800',
   },
 });
 

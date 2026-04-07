@@ -462,13 +462,19 @@ const HomeScreen = ({navigation, isLoggedIn, scrollToTopKey}) => {
     return recs.slice(0, 10);
   }, [recentlyViewed, products]);
 
-  const fetchProducts = useCallback(async () => {
-    setNetworkFailed(false);
-    try {
-      const data = await getProducts({limit: 2500});
+  const pageRef = React.useRef(1);
+  const hasMoreRef = React.useRef(true);
+  const loadingMoreRef = React.useRef(false);
 
-      // Handle every common API response shape:
-      // { success, products: [...] }  |  { data: [...] }  |  { items: [...] }  |  [...]
+  const fetchProducts = useCallback(async (reset = true) => {
+    setNetworkFailed(false);
+    if (reset) {
+      pageRef.current = 1;
+      hasMoreRef.current = true;
+    }
+    try {
+      const data = await getProducts({limit: 40, page: pageRef.current});
+
       let raw = null;
       if (Array.isArray(data)) {
         raw = data;
@@ -480,35 +486,37 @@ const HomeScreen = ({navigation, isLoggedIn, scrollToTopKey}) => {
         raw = data.items;
       }
 
-      if (__DEV__) {
-        console.log('[Products] API response keys:', data ? Object.keys(data) : 'null');
-        console.log('[Products] Raw count:', raw?.length ?? 0);
-      }
-
       if (raw && raw.length > 0) {
         const normalized = raw.map(normalizeProduct);
-        if (__DEV__) {
-          console.log(`[Products] Loaded ${normalized.length} real products from API`);
-          console.log('[Products] Sample:', JSON.stringify(normalized[0]).substring(0, 200));
+        if (reset) {
+          setProducts(normalized);
+          setInterleavedProducts(interleaveByCategory(normalized));
+        } else {
+          setProducts(prev => {
+            const merged = [...prev, ...normalized];
+            setInterleavedProducts(interleaveByCategory(merged));
+            return merged;
+          });
         }
-        setProducts(normalized);
-        setInterleavedProducts(interleaveByCategory(normalized));
-      } else {
-        // API returned nothing — keep fallback catalog so the app still shows products
-        if (__DEV__) {
-          console.warn('[Products] API returned no products — showing fallback catalog');
-        }
+        hasMoreRef.current = (data.page || 1) < (data.totalPages || 1);
+      } else if (reset) {
+        hasMoreRef.current = false;
       }
     } catch (err) {
       setNetworkFailed(true);
-      if (__DEV__) {
-        console.warn('[Products] Fetch failed:', err.message, '— showing fallback catalog');
-      }
     } finally {
       setInitialLoading(false);
       setRefreshing(false);
+      loadingMoreRef.current = false;
     }
   }, []);
+
+  const fetchNextPage = useCallback(() => {
+    if (!hasMoreRef.current || loadingMoreRef.current) return;
+    loadingMoreRef.current = true;
+    pageRef.current += 1;
+    fetchProducts(false);
+  }, [fetchProducts]);
 
   useEffect(() => { fetchProducts(); }, [fetchProducts]);
 
@@ -552,15 +560,18 @@ const HomeScreen = ({navigation, isLoggedIn, scrollToTopKey}) => {
   }, [filteredProducts]);
 
   const loadMoreProducts = useCallback(() => {
-    if (filteredProducts.length === 0) return;
-    setDisplayProducts(prev => {
-      const batch = shuffle(filteredProducts).slice(0, ENDLESS_CHUNK).map((p, i) => ({
-        ...p,
-        _listKey: `e-${prev.length + i}`,
-      }));
-      return prev.concat(batch);
-    });
-  }, [filteredProducts]);
+    if (hasMoreRef.current) {
+      fetchNextPage();
+    } else if (filteredProducts.length > 0) {
+      setDisplayProducts(prev => {
+        const batch = shuffle(filteredProducts).slice(0, ENDLESS_CHUNK).map((p, i) => ({
+          ...p,
+          _listKey: `e-${prev.length + i}`,
+        }));
+        return prev.concat(batch);
+      });
+    }
+  }, [filteredProducts, fetchNextPage]);
 
   const {width} = useWindowDimensions();
   const insets = useSafeAreaInsets();
@@ -840,19 +851,19 @@ const HomeScreen = ({navigation, isLoggedIn, scrollToTopKey}) => {
 // ── Card styles ───────────────────────────────────────────────
 const cardStyles = StyleSheet.create({
   card: {
-    borderRadius: 10,
+    borderRadius: 16,
     overflow: 'hidden',
-    marginBottom: 8,
+    marginBottom: 12,
     shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
-    shadowOpacity: 0.08,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowOffset: {width: 0, height: 4},
+    shadowOpacity: 0.06,
+    shadowRadius: 10,
+    elevation: 4,
   },
   imageWrapper: {
     width: '100%',
     overflow: 'hidden',
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#f9f9f9',
   },
   image: {
     width: '100%',
@@ -860,34 +871,39 @@ const cardStyles = StyleSheet.create({
   },
   discountBadge: {
     position: 'absolute',
-    top: 8,
-    left: 8,
-    backgroundColor: '#FF0000',
-    paddingHorizontal: 7,
-    paddingVertical: 3,
-    borderRadius: 5,
+    top: 10,
+    left: 10,
+    backgroundColor: '#E60000',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
   },
-  discountText: {color: '#fff', fontSize: fs(11), fontWeight: 'bold'},
+  discountText: {color: '#fff', fontSize: fs(11), fontWeight: '800'},
   info: {
-    paddingHorizontal: s(7),
-    paddingTop: vs(5),
-    paddingBottom: vs(6),
+    paddingHorizontal: 10,
+    paddingTop: 10,
+    paddingBottom: 12,
   },
   name: {
-    fontSize: fs(11),
-    fontWeight: '500',
+    fontSize: fs(13),
+    fontWeight: '600',
     lineHeight: fs(18),
-    marginBottom: vs(3),
+    marginBottom: 6,
   },
   starRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 1,
-    marginBottom: 3,
+    gap: 2,
+    marginBottom: 8,
   },
   reviewCount: {
-    fontSize: fs(10),
-    marginLeft: 2,
+    fontSize: fs(11),
+    marginLeft: 4,
   },
   priceRow: {
     flexDirection: 'row',
@@ -902,33 +918,34 @@ const cardStyles = StyleSheet.create({
     flexShrink: 1,
   },
   price: {
-    fontSize: fs(15),
-    fontWeight: 'bold',
-    color: '#FF0000',
+    fontSize: fs(17),
+    fontWeight: '800',
+    color: '#E60000',
   },
   sold: {
-    fontSize: fs(9),
+    fontSize: fs(11),
+    fontWeight: '500',
   },
   addBtn: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: '#FF0000',
+    width: 36,
+    height: 36,
+    borderRadius: 12,
+    backgroundColor: '#E60000',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#FF0000',
-    shadowOffset: {width: 0, height: 2},
-    shadowOpacity: 0.35,
-    shadowRadius: 4,
+    shadowColor: '#E60000',
+    shadowOffset: {width: 0, height: 4},
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
     elevation: 4,
     flexShrink: 0,
   },
   rrp: {
-    fontSize: fs(10),
+    fontSize: fs(11),
   },
   rrpStrike: {
     textDecorationLine: 'line-through',
-    fontSize: fs(10),
+    fontSize: fs(11),
   },
 });
 

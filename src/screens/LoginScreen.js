@@ -19,6 +19,7 @@ import {useLanguage} from '../context/LanguageContext';
 import {BackIcon} from '../components/Icons';
 import Icon from 'react-native-vector-icons/Ionicons';
 import {loginUser} from '../services/api';
+import {lightTap, successTap} from '../utils/haptics';
 import {s, vs, fs} from '../utils/scale';
 
 const LoginScreen = ({navigation, onLogin}) => {
@@ -34,11 +35,6 @@ const LoginScreen = ({navigation, onLogin}) => {
   const [loading, setLoading] = useState(false);
   const [apiError, setApiError] = useState('');
 
-  const handleBack = () => {
-    if (navigation.canGoBack()) navigation.goBack();
-    else navigation.resetStack('Home');
-  };
-
   const validate = () => {
     let valid = true;
     setEmailError('');
@@ -52,128 +48,126 @@ const LoginScreen = ({navigation, onLogin}) => {
   };
 
   const handleLogin = async () => {
-    if (!validate()) return;
+    if (!validate()) { lightTap(); return; }
     setLoading(true);
     setApiError('');
     try {
       const data = await loginUser(email.trim(), password);
-      // API returns { token, user } on success; success flag may or may not be present
       if (data?.user) {
+        successTap();
         if (onLogin) onLogin(data.user);
       } else {
         setApiError(data?.message || 'Login failed');
       }
     } catch (err) {
-      const msg = err.response?.data?.message || 'ምስ ሰርቨር ምትሕሓዝ ኣይተኻእለን';
-      setApiError(msg);
+      setApiError(err.response?.data?.message || 'Network error');
     } finally {
       setLoading(false);
     }
   };
 
+  const inputStyle = {
+    backgroundColor: theme.cardBg,
+    color: theme.text,
+    borderColor: theme.border,
+    borderRadius: 16,
+    padding: 16,
+    fontSize: fs(16),
+    borderWidth: 1.5,
+    marginBottom: 4,
+  };
+
   return (
     <SafeAreaView style={[styles.container, {backgroundColor: theme.bg}]} edges={['top']}>
-      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={theme.bg} translucent={false} />
+      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
       <KeyboardAvoidingView style={{flex: 1}} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-
-        <View style={[styles.header, {backgroundColor: theme.cardBg, borderBottomColor: theme.border}]}>
-          <TouchableOpacity onPress={handleBack} hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}>
-            <BackIcon size={28} color={theme.text} />
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+            <BackIcon size={24} color={theme.text} />
           </TouchableOpacity>
-          <Text style={[styles.headerTitle, {color: theme.text}]}>{t('loginTitle')}</Text>
-          <View style={{width: 40}} />
         </View>
 
-        <ScrollView
-          contentContainerStyle={[styles.scrollContent, isTablet && styles.scrollContentTablet]}
-          keyboardShouldPersistTaps="handled">
-
-          <View style={[styles.formCard, isTablet && styles.formCardTablet, {backgroundColor: isTablet ? theme.cardBg : 'transparent'}]}>
-
-            <View style={styles.logoSection}>
-              <Text style={styles.appName}>{t('appName')}</Text>
-              <Text style={[styles.welcomeText, {color: theme.subText}]}>{t('welcomeBack')}</Text>
+        <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+          <View style={styles.content}>
+            <View style={styles.welcomeSection}>
+              <View style={[styles.logoBadge, {backgroundColor: '#E60000'}]}>
+                <Text style={styles.logoText}>A</Text>
+              </View>
+              <h1 style={{fontSize: fs(28), fontWeight: '900', color: theme.text, marginTop: 24, marginBottom: 8}}>
+                {t('welcomeBack') || 'Welcome Back'}
+              </h1>
+              <Text style={{fontSize: fs(16), color: theme.subText, fontWeight: '600'}}>
+                {t('loginSub') || 'Sign in to your account'}
+              </Text>
             </View>
 
+            {apiError ? (
+              <View style={[styles.errorBox, {backgroundColor: 'rgba(230, 0, 0, 0.05)', borderColor: 'rgba(230, 0, 0, 0.1)'}]}>
+                <Text style={styles.errorText}>{apiError}</Text>
+              </View>
+            ) : null}
+
             <View style={styles.form}>
-              {apiError ? (
-                <View style={styles.apiErrorBox}>
-                  <Text style={styles.apiErrorText}>{apiError}</Text>
+              <View style={styles.inputGroup}>
+                <Text style={[styles.label, {color: theme.text}]}>{t('emailLabel') || 'Email'}</Text>
+                <TextInput
+                  style={[inputStyle, emailError ? {borderColor: '#E60000'} : null]}
+                  placeholder="name@example.com"
+                  placeholderTextColor={theme.subText}
+                  value={email}
+                  onChangeText={setEmail}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  editable={!loading}
+                />
+                {emailError ? <Text style={styles.fieldError}>{emailError}</Text> : null}
+              </View>
+
+              <View style={styles.inputGroup}>
+                <View style={{flexDirection: 'row', justifyContent: 'space-between'}}>
+                  <Text style={[styles.label, {color: theme.text}]}>{t('passwordLabel') || 'Password'}</Text>
+                  <TouchableOpacity onPress={() => navigation.navigate('ForgotPassword')}>
+                    <Text style={{color: '#E60000', fontSize: 13, fontWeight: '700'}}>{t('forgotPassword')}</Text>
+                  </TouchableOpacity>
                 </View>
-              ) : null}
-
-              <TextInput
-                style={[styles.input, {backgroundColor: theme.cardBg, color: theme.text, borderColor: emailError ? '#FF0000' : theme.border}]}
-                placeholder={t('emailPlaceholder')}
-                value={email}
-                onChangeText={v => {setEmail(v); setEmailError(''); setApiError('');}}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                placeholderTextColor={theme.subText}
-                editable={!loading}
-              />
-              {emailError ? <Text style={styles.fieldError}>{emailError}</Text> : null}
-
-              <TextInput
-                style={[styles.input, {backgroundColor: theme.cardBg, color: theme.text, borderColor: passwordError ? '#FF0000' : theme.border}]}
-                placeholder={t('passwordPlaceholder')}
-                value={password}
-                onChangeText={v => {setPassword(v); setPasswordError(''); setApiError('');}}
-                secureTextEntry
-                placeholderTextColor={theme.subText}
-                editable={!loading}
-              />
-              {passwordError ? <Text style={styles.fieldError}>{passwordError}</Text> : null}
-
-              <TouchableOpacity onPress={() => navigation.navigate('ForgotPassword')}>
-                <Text style={styles.forgotPassword}>{t('forgotPassword')}</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={[styles.loginButton, loading && {backgroundColor: '#ccc'}]}
-                onPress={handleLogin}
-                disabled={loading}>
-                {loading
-                  ? <ActivityIndicator color="#fff" />
-                  : <Text style={styles.loginButtonText}>{t('loginBtn')}</Text>}
-              </TouchableOpacity>
-
-              <View style={styles.divider}>
-                <View style={[styles.dividerLine, {backgroundColor: theme.border}]} />
-                <Text style={[styles.dividerText, {color: theme.subText}]}>{t('or')}</Text>
-                <View style={[styles.dividerLine, {backgroundColor: theme.border}]} />
+                <TextInput
+                  style={[inputStyle, passwordError ? {borderColor: '#E60000'} : null]}
+                  placeholder="••••••••"
+                  placeholderTextColor={theme.subText}
+                  value={password}
+                  onChangeText={setPassword}
+                  secureTextEntry
+                  editable={!loading}
+                />
+                {passwordError ? <Text style={styles.fieldError}>{passwordError}</Text> : null}
               </View>
 
               <TouchableOpacity
-                style={[styles.socialButton, {backgroundColor: theme.cardBg, borderColor: theme.border}]}
-                onPress={() => Alert.alert(t('comingSoonTitle'), t('comingSoonSub'))}>
-                <View style={styles.socialButtonInner}>
-                  <Icon name="logo-google" size={20} color="#DB4437" />
-                  <Text style={[styles.socialButtonText, {color: theme.text}]}>{t('loginGoogle')}</Text>
-                </View>
+                style={[styles.mainBtn, loading && {opacity: 0.7}]}
+                onPress={handleLogin}
+                disabled={loading}>
+                {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.mainBtnText}>{t('signIn') || 'Sign In'}</Text>}
               </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.socialButton, {backgroundColor: '#1877F2', borderColor: '#1877F2'}]}
-                onPress={() => Alert.alert(t('comingSoonTitle'), t('comingSoonSub'))}>
-                <View style={styles.socialButtonInner}>
-                  <Icon name="logo-facebook" size={20} color="#fff" />
-                  <Text style={[styles.socialButtonText, {color: '#fff'}]}>{t('loginFacebook')}</Text>
-                </View>
+
+              <View style={styles.divider}>
+                <View style={[styles.line, {backgroundColor: theme.border}]} />
+                <Text style={{marginHorizontal: 16, color: theme.subText, fontWeight: '700'}}>{t('or')}</Text>
+                <View style={[styles.line, {backgroundColor: theme.border}]} />
+              </View>
+
+              <TouchableOpacity style={[styles.socialBtn, {borderColor: theme.border}]} onPress={() => Alert.alert('Coming Soon')}>
+                <Icon name="logo-google" size={20} color="#DB4437" />
+                <Text style={[styles.socialBtnText, {color: theme.text}]}>Google</Text>
               </TouchableOpacity>
             </View>
 
-            <TouchableOpacity style={styles.aboutButton} onPress={() => navigation.navigate('AboutUs')}>
-              <Text style={[styles.aboutButtonText, {color: theme.subText}]}>{t('aboutUs')}</Text>
-            </TouchableOpacity>
-
             <View style={styles.footer}>
-              <Text style={[styles.footerText, {color: theme.subText}]}>{t('noAccount')}</Text>
+              <Text style={{color: theme.subText, fontSize: fs(15), fontWeight: '600'}}>{t('noAccount')}</Text>
               <TouchableOpacity onPress={() => navigation.navigate('Register')}>
-                <Text style={styles.registerLink}>{t('registerLink')}</Text>
+                <Text style={{color: '#E60000', fontSize: fs(15), fontWeight: '800', marginLeft: 8}}>{t('registerLink')}</Text>
               </TouchableOpacity>
             </View>
           </View>
-          <View style={{height: 40}} />
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -181,43 +175,27 @@ const LoginScreen = ({navigation, onLogin}) => {
 };
 
 const styles = StyleSheet.create({
-  container: {flex: 1},
-  header: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingHorizontal: 18, paddingVertical: 16, borderBottomWidth: 1,
-  },
-  headerTitle: {fontSize: fs(20), fontWeight: 'bold'},
-  scrollContent: {flexGrow: 1, padding: 20},
-  scrollContentTablet: {alignItems: 'center', paddingVertical: 40},
-  formCard: {width: '100%'},
-  formCardTablet: {
-    maxWidth: 500, borderRadius: 20, padding: 32,
-    shadowColor: '#000', shadowOffset: {width: 0, height: 4},
-    shadowOpacity: 0.1, shadowRadius: 12, elevation: 6,
-  },
-  logoSection: {alignItems: 'center', marginTop: 20, marginBottom: 36, width: '100%', paddingHorizontal: 20},
-  logo: {width: 90, height: 90, marginBottom: 12},
-  appName: {fontSize: fs(32), fontWeight: 'bold', color: '#FF0000', marginBottom: 8},
-  welcomeText: {fontSize: fs(16), textAlign: 'center'},
-  form: {marginBottom: 16},
-  input: {borderRadius: 12, padding: 16, fontSize: fs(16), marginBottom: 4, borderWidth: 1},
-  fieldError: {color: '#FF0000', fontSize: fs(12), marginBottom: 10, marginLeft: 4},
-  forgotPassword: {color: '#FF0000', fontSize: fs(14), textAlign: 'right', marginBottom: 20, marginTop: 6, fontWeight: '600'},
-  loginButton: {backgroundColor: '#FF0000', padding: 18, borderRadius: 12, alignItems: 'center', marginBottom: 20},
-  loginButtonText: {color: '#fff', fontSize: fs(18), fontWeight: 'bold'},
-  divider: {flexDirection: 'row', alignItems: 'center', marginVertical: 16},
-  dividerLine: {flex: 1, height: 1},
-  dividerText: {marginHorizontal: 15, fontSize: fs(14)},
-  socialButton: {padding: 16, borderRadius: 12, alignItems: 'center', marginBottom: 12, borderWidth: 1},
-  socialButtonInner: {flexDirection: 'row', alignItems: 'center', gap: 10},
-  socialButtonText: {fontSize: fs(16), fontWeight: '600'},
-  aboutButton: {marginTop: 16, marginBottom: 8, alignItems: 'center'},
-  aboutButtonText: {fontSize: fs(14), textDecorationLine: 'underline'},
-  footer: {flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginTop: 16},
-  footerText: {fontSize: fs(15)},
-  registerLink: {fontSize: fs(15), color: '#FF0000', fontWeight: 'bold'},
-  apiErrorBox: {backgroundColor: '#fff5f5', borderWidth: 1, borderColor: '#FF0000', borderRadius: 8, padding: 12, marginBottom: 12},
-  apiErrorText: {color: '#FF0000', fontSize: fs(14), textAlign: 'center', fontWeight: '600'},
+  container: { flex: 1 },
+  header: { paddingHorizontal: 16, height: 50, justifyContent: 'center' },
+  backBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
+  scroll: { flexGrow: 1 },
+  content: { padding: 24 },
+  welcomeSection: { alignItems: 'center', marginBottom: 40, marginTop: 20 },
+  logoBadge: { width: 64, height: 64, borderRadius: 20, alignItems: 'center', justifyContent: 'center', shadowColor: '#E60000', shadowOffset: {width: 0, height: 8}, shadowOpacity: 0.2, shadowRadius: 12, elevation: 5 },
+  logoText: { color: '#fff', fontSize: 32, fontWeight: '900' },
+  form: { width: '100%' },
+  inputGroup: { marginBottom: 20 },
+  label: { fontSize: 13, fontWeight: '800', marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5 },
+  fieldError: { color: '#E60000', fontSize: 12, marginTop: 4, fontWeight: '600' },
+  mainBtn: { backgroundColor: '#E60000', height: 56, borderRadius: 16, alignItems: 'center', justifyContent: 'center', marginTop: 12, shadowColor: '#E60000', shadowOffset: {width: 0, height: 4}, shadowOpacity: 0.2, shadowRadius: 8, elevation: 4 },
+  mainBtnText: { color: '#fff', fontSize: 18, fontWeight: '800' },
+  divider: { flexDirection: 'row', alignItems: 'center', marginVertical: 32 },
+  line: { flex: 1, height: 1 },
+  socialBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 12, height: 56, borderRadius: 16, borderWidth: 1.5 },
+  socialBtnText: { fontSize: 16, fontWeight: '700' },
+  footer: { flexDirection: 'row', justifyContent: 'center', marginTop: 40 },
+  errorBox: { padding: 16, borderRadius: 12, borderWidth: 1, marginBottom: 24 },
+  errorText: { color: '#E60000', fontSize: 14, textAlign: 'center', fontWeight: '700' }
 });
 
 export default LoginScreen;

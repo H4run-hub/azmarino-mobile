@@ -41,5 +41,6 @@ export const identifyProductFromImage = async (base64Image, mimeType = 'image/jp
     category: data.category,
     keywords: data.keywords || [],
     confidence: data.confidence || 'medium',
+    cjProducts: data.cjProducts || [],
   };
 };
